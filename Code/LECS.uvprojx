@@ -383,12 +383,19 @@
             <File>
               <FileName>main.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\..\..\Downloads\main.cpp</FilePath>
+              <FilePath>.\main.cpp</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Headers</GroupName>
+          <Files>
+            <File>
+              <FileName>main.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\main.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Documentation</GroupName>
@@ -397,6 +404,11 @@
               <FileName>Abstract.txt</FileName>
               <FileType>5</FileType>
               <FilePath>.\Abstract.txt</FilePath>
+            </File>
+            <File>
+              <FileName>notes.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\notes.txt</FilePath>
             </File>
           </Files>
         </Group>
