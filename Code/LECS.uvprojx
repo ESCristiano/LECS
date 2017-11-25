@@ -385,6 +385,11 @@
               <FileType>8</FileType>
               <FilePath>.\main.cpp</FilePath>
             </File>
+            <File>
+              <FileName>CLdrSensor.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLdrSensor.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -394,6 +399,11 @@
               <FileName>main.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\main.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLdrSensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLdrSensor.h</FilePath>
             </File>
           </Files>
         </Group>
