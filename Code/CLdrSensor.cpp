@@ -78,7 +78,7 @@ void CLdrSensor::init_LDR(void)
 * Output         : uint16_t
 * Return				 : Value between 0 and 255 that represent the value of LDR
 *******************************************************************************/
-int CLdrSensor::read_LDR(void)
+uint16_t CLdrSensor::read_LDR(void)
 {
 	ADC_SoftwareStartConv(ADC1);//Start the conversion
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));//Processing the conversion

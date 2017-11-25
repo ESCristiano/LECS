@@ -26,7 +26,7 @@ public:
 	* Output         : uint16_t
 	* Return				 : Value between 0 and 255 that represent the value of LDR
 	*******************************************************************************/
-	int read_LDR(void);
+	uint16_t read_LDR(void);
 
 	/*******************************************************************************
 	* Function Name  : close_LDR 
