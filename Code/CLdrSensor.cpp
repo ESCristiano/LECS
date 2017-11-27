@@ -10,13 +10,28 @@ CLdrSensor::~CLdrSensor()
 }
 
 /*******************************************************************************
-* Function Name  : init_LDR
+* Function Name  : initTimer
+* Description    : Initialization timer 7 and her interrupt
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::initTimer(void)
+{ 
+	this->timerInit();
+	this->timerInterruptInit();
+	this->timerInterruptEnable();
+	this->timerStart();
+}
+
+/*******************************************************************************
+* Function Name  : initLDR
 * Description    : Initialization of the adc 1 channel 1 PA1 for read LDR
 * Input          : None (void)
 * Output         : None (void)
 * Return				 : None
 *******************************************************************************/
-void CLdrSensor::init_LDR(void)
+void CLdrSensor::initLDR(void)
 {
 /**************************ADC_InitTypeDef***********************************+
   uint32_t ADC_Resolution;                !< Configures the ADC resolution dual mode. 
@@ -72,13 +87,13 @@ void CLdrSensor::init_LDR(void)
 }
 
 /*******************************************************************************
-* Function Name  : read_LDR
+* Function Name  : readLDR
 * Description    : Initialization of the adc for read LDR
 * Input          : None (void)
 * Output         : uint16_t
 * Return				 : Value between 0 and 255 that represent the value of LDR
 *******************************************************************************/
-uint16_t CLdrSensor::read_LDR(void)
+uint16_t CLdrSensor::readLDR(void)
 {
 	ADC_SoftwareStartConv(ADC1);//Start the conversion
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));//Processing the conversion
@@ -86,12 +101,138 @@ uint16_t CLdrSensor::read_LDR(void)
 }
 
 /*******************************************************************************
-* Function Name  : close_LDR
+* Function Name  : closeLDR
 * Description    : Cleanup
 * Input          : None (void)
 * Output         : None (void)
 * Return				 : None
 *******************************************************************************/
-void CLdrSensor::close_LDR(void)
+void CLdrSensor::closeLDR(void)
 {
+}
+
+/*******************************************************************************
+* Function Name  : timerInterruptInit
+* Description    : Init timer 7 overflow interrupt
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerInterruptInit(void)
+{
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+  /* Enable the timer global Interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 15; //lowest priority
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 15;//lowest priority
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+}
+
+/*******************************************************************************
+* Function Name  : timerInit
+* Description    : Init timer 7
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerInit(void)
+{
+	/*
+	TIM7 Clock Frequency = 84MHZ
+	Prescaler = 42000
+	(TIM7 Clock Frequency) / Prescaler = 2000 HZ
+	New Frequency = 2000 HZ => ( 0.5 ms for tick )
+	To have 1 second = 0.5 ms * 2000
+	So, put 2000 in reload.
+	*/
+	
+  uint16_t prescaler = 42000 - 1;
+  uint16_t reload = (2000) - 1; //overflow 1 second in 1 second
+  
+  /*Enable the clock */
+  RCC_APB1PeriphClockCmd (RCC_APB1Periph_TIM7, ENABLE);
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+  /* set everything back to default values */
+  TIM_TimeBaseStructInit (&TIM_TimeBaseStructure);
+  /* only changes from the defaults are needed */
+  TIM_TimeBaseStructure.TIM_Period = reload;
+  TIM_TimeBaseStructure.TIM_Prescaler = prescaler;
+  TIM_TimeBaseInit (TIM7, &TIM_TimeBaseStructure);
+}
+
+/*******************************************************************************
+* Function Name  : timerStart
+* Description    : Run timer 7
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerStart(void)
+{
+	TIM_Cmd (TIM7, ENABLE);
+}
+
+/*******************************************************************************
+* Function Name  : timerStop
+* Description    : Stop Timer 7
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerStop(void)
+{
+	TIM_Cmd (TIM7, DISABLE);
+}
+
+/*******************************************************************************
+* Function Name  : timerInterruptEnable
+* Description    : Enable timer 7 interreput
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerInterruptEnable(void)
+{
+	/*
+   * It is important to clear any pending interrupt flags since the timer
+   * has been free-running since we last used it and that will generate
+   * interrupts on overflow even though the associated interrupt event has
+   * not been enabled.
+   */
+  TIM_ClearITPendingBit (TIM7, TIM_IT_Update);
+  /* put the counter into a known state */
+  TIM_SetCounter (TIM7, 0);
+  TIM_ITConfig (TIM7, TIM_IT_Update, ENABLE);
+}
+
+/*******************************************************************************
+* Function Name  : timerInterruptDisable
+* Description    : Disable timer 7 interreput
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+void CLdrSensor::timerInterruptDisable(void)
+{
+	TIM_ITConfig (TIM7, TIM_IT_Update, DISABLE);
+}
+
+/*******************************************************************************
+* Function Name  : TIM7_IRQHandler
+* Description    : ISR
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+extern "C" void TIM7_IRQHandler(void)
+{
+	CLdrSensor ldr;
+	if (TIM_GetITStatus (TIM7, TIM_IT_Update) != RESET) {
+		
+		GPIO_ToggleBits (GPIOD, GPIO_Pin_13);
+    value = ldr.readLDR();
+    TIM_ClearITPendingBit (TIM7, TIM_IT_Update);
+  }
 }

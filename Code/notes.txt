@@ -1,21 +1,6 @@
 Information to speed up programming.
 
-	To turn on the leds on the board to do some debug:
-
-		Macros Pins:
-			
-			__LED_GREEN
-			__LED_ORANGE 
-			__LED_RED 
-			__LED_BLUE 
-
-		Functions:
-		
-			GPIO_ToggleBits(GPIOD, __LED_GREEN);
-			GPIO_WriteBit(GPIOD,__LED_GREEN,Bit_SET);
-			GPIO_WriteBit(GPIOD,__LED_GREEN,Bit_RESET);
-
-;Interrupts handlers names
+Interrupts handlers names
 
                 DCD     WWDG_IRQHandler                   ; Window WatchDog                                        
                 DCD     PVD_IRQHandler                    ; PVD through EXTI Line detection                        
