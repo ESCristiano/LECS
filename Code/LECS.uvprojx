@@ -390,6 +390,11 @@
               <FileType>8</FileType>
               <FilePath>.\CLdrSensor.cpp</FilePath>
             </File>
+            <File>
+              <FileName>stm32f4_ISRs.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\stm32f4_ISRs.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -404,6 +409,11 @@
               <FileName>CLdrSensor.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\CLdrSensor.h</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4_ISRs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\stm32f4_ISRs.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -218,21 +218,3 @@ void CLdrSensor::timerInterruptDisable(void)
 {
 	TIM_ITConfig (TIM7, TIM_IT_Update, DISABLE);
 }
-
-/*******************************************************************************
-* Function Name  : TIM7_IRQHandler
-* Description    : ISR
-* Input          : None (void)
-* Output         : None (void)
-* Return				 : None
-*******************************************************************************/
-extern "C" void TIM7_IRQHandler(void)
-{
-	CLdrSensor ldr;
-	if (TIM_GetITStatus (TIM7, TIM_IT_Update) != RESET) {
-		
-		GPIO_ToggleBits (GPIOD, GPIO_Pin_13);
-    value = ldr.readLDR();
-    TIM_ClearITPendingBit (TIM7, TIM_IT_Update);
-  }
-}
