@@ -395,15 +395,20 @@
               <FileType>8</FileType>
               <FilePath>.\stm32f4_ISRs.cpp</FilePath>
             </File>
+            <File>
+              <FileName>CInitialization.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CInitialization.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Headers</GroupName>
           <Files>
             <File>
-              <FileName>main.h</FileName>
+              <FileName>CBoardLeds.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\main.h</FilePath>
+              <FilePath>.\CBoardLeds.h</FilePath>
             </File>
             <File>
               <FileName>CLdrSensor.h</FileName>
@@ -414,6 +419,11 @@
               <FileName>stm32f4_ISRs.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\stm32f4_ISRs.h</FilePath>
+            </File>
+            <File>
+              <FileName>CInitializations.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CInitializations.h</FilePath>
             </File>
           </Files>
         </Group>

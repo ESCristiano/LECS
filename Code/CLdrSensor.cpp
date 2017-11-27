@@ -109,6 +109,8 @@ uint16_t CLdrSensor::readLDR(void)
 *******************************************************************************/
 void CLdrSensor::closeLDR(void)
 {
+	this->timerStop();
+	this->timerInterruptDisable();
 }
 
 /*******************************************************************************

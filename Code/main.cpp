@@ -23,70 +23,21 @@
 #include <stm32f4xx.h>
 
 /* Our includes*/
-#include "main.h"
-#include "CLdrSensor.h"
+#include "CInitializations.h"
 
-void prvSetupLed(void);
 
 uint16_t value;
 
-void vLEDTask( void *pvParameters )
-{
-	prvSetupLed();
-	
-	CLdrSensor ldr;
-	
-	ldr.initLDR();
-	ldr.initTimer();
-	
-	for( ;; )
-	{
-		if(value >200)
-		{
-			leds.resetBlue();
-			leds.resetGreen();
-			leds.resetRed();
-			leds.setOrange();
-		}			
-		else
-			if(value >150)
-			{
-				leds.resetBlue();
-				leds.resetGreen();
-				leds.resetOrange();
-				leds.setRed();
-			
-			}				
-			else
-				if(value >100)
-				{
-					leds.resetRed();
-					leds.resetGreen();
-					leds.resetOrange();
-					leds.setBlue();	
-				}
-				else
-					if(value >= 0)
-					{	
-					leds.resetRed();
-					leds.resetBlue();
-					leds.resetOrange();
-					leds.setGreen();	
-					}
-	}
-}
-
-
-
 int main()
 {
+	CInitializations LECS;
 	
-	portBASE_TYPE task1_pass;
+	LECS.init3DLedMatrix();
+	LECS.initCapacitiveSensor();
+	LECS.initLightSensor();
+	LECS.initMicrophone();
 	
-	/* Create Task */
-	task1_pass = xTaskCreate( vLEDTask, "Task_Led", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-	
-	if( task1_pass == pdPASS )
+	if( !LECS.initTasks() )
 	{
 			/* Start the Scheduler */ 
 			vTaskStartScheduler(); 
@@ -98,21 +49,4 @@ int main()
 	}
 	
 	return 0;
-}
-
-
-void prvSetupLed(void)
-{
-	// GPIO structure declaration
-	GPIO_InitTypeDef GPIO_InitStruct;
-	// Enabling GPIO peripheral clock
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-	// GPIO peripheral properties specification
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15; // LED3 GPIO pin
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT; // output
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
-	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP; // push/pull 
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL; // pullup/pulldown resistors inactive
-	// Setting GPIO peripheral corresponding bits
-	GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
