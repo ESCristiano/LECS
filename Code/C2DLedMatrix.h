@@ -11,7 +11,7 @@ public:
 	C2DLedMatrix();
 	~C2DLedMatrix();
 
-//protected:
+protected:
 	void set2DMatrix(vector< vector<int> >);
 	void write2DMatrix();
 

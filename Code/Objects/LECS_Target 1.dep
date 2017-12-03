@@ -37,7 +37,7 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc.h)(0x52B41D66)
 I (CLecs.h)(0x5A24225D)
 I (CLayer.h)(0x5A2448DE)
-F (.\CLecs.cpp)(0x5A2454E0)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\clecs.o --omf_browse .\objects\clecs.crf --depend .\objects\clecs.d)
+F (.\CLecs.cpp)(0x5A2455D8)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\clecs.o --omf_browse .\objects\clecs.crf --depend .\objects\clecs.d)
 I (CLecs.h)(0x5A24225D)
 I (freertos.h)(0x5A235D11)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include\FreeRTOS.h)(0x598B2F5C)
@@ -78,7 +78,7 @@ I (CSensors.h)(0x5A235D11)
 I (CBoardLeds.h)(0x5A235D11)
 I (CLightSensor.h)(0x5A235D11)
 I (CTimer.h)(0x5A235D11)
-I (C2DLedMatrix.h)(0x5A244A97)
+I (C2DLedMatrix.h)(0x5A2455D8)
 I (C:\Keil_v5\ARM\ARMCC\include\vector)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\limits)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\rw\_defs.h)(0x564DBEDE)
@@ -259,7 +259,7 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_tim.h)(0x52B41D66)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_usart.h)(0x52B41D66)
 F (.\C2DLedMatrix.cpp)(0x5A2454E0)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\c2dledmatrix.o --omf_browse .\objects\c2dledmatrix.crf --depend .\objects\c2dledmatrix.d)
-I (C2DLedMatrix.h)(0x5A244A97)
+I (C2DLedMatrix.h)(0x5A2455D8)
 I (C:\Keil_v5\ARM\ARMCC\include\vector)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\limits)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\rw\_defs.h)(0x564DBEDE)
@@ -309,7 +309,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\vector.CC)(0x564DBEDC)
 F (.\C3DLedMatrix.cpp)(0x5A2454E0)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\c3dledmatrix.o --omf_browse .\objects\c3dledmatrix.crf --depend .\objects\c3dledmatrix.d)
 I (C3DLedMatrix.h)(0x5A235D11)
 I (CLayer.h)(0x5A2448DE)
-I (C2DLedMatrix.h)(0x5A244A97)
+I (C2DLedMatrix.h)(0x5A2455D8)
 I (C:\Keil_v5\ARM\ARMCC\include\vector)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\limits)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\rw\_defs.h)(0x564DBEDE)
@@ -373,7 +373,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\functional)(0x564DBEDE)
 I (C:\Keil_v5\ARM\ARMCC\include\vector)(0x564DBEDE)
 I (C3DLedMatrix.h)(0x5A235D11)
 I (CLayer.h)(0x5A2448DE)
-I (C2DLedMatrix.h)(0x5A244A97)
+I (C2DLedMatrix.h)(0x5A2455D8)
 I (C:\Keil_v5\ARM\ARMCC\include\vector.CC)(0x564DBEDC)
 I (C:\Keil_v5\ARM\ARMCC\include\deque.CC)(0x564DBEDE)
 F (.\CLayer.cpp)(0x5A245408)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\clayer.o --omf_browse .\objects\clayer.crf --depend .\objects\clayer.d)
@@ -404,7 +404,7 @@ F (.\CCapSensors.h)(0x5A235D11)()
 F (.\CLightSensor.h)(0x5A235D11)()
 F (.\CMicrophone.h)(0x5A235D11)()
 F (.\CTimer.h)(0x5A235D11)()
-F (.\C2DLedMatrix.h)(0x5A244A97)()
+F (.\C2DLedMatrix.h)(0x5A2455D8)()
 F (.\C3DLedMatrix.h)(0x5A235D11)()
 F (.\C3DLedMatrixBuffer.h)(0x5A245358)()
 F (.\CLayer.h)(0x5A2448DE)()

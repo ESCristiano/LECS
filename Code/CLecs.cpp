@@ -303,7 +303,7 @@ void vTaskTest(void *pvParameters)
 	CSensors* Sensors = CSensors::getInstance();
 	for( ;; )
 	{	
-		matrix.write2DMatrix();
+//		matrix.write2DMatrix();
 //		if(Sensors->getDataLdr() == 3)
 //			{
 //				leds.resetBlue();
