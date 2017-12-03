@@ -5,13 +5,15 @@
 #define _CLAYER_H
 
 class CLayer {
+	
 public:
 	CLayer();
 	~CLayer();
-
-//protected:
+protected:
+	void writeLayer();
+	void setLayer(int);
+private:
 	int layer[5];
-	void writeLayer(int);
 };
 
 #endif //_CLAYER_H

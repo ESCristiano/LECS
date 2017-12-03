@@ -10,12 +10,13 @@ class C2DLedMatrix
 public:
 	C2DLedMatrix();
 	~C2DLedMatrix();
-	void set2DMatrix(vector< vector<int> >);
-	vector< vector<int> > get2DMatrix(void);
 
-protected:
+//protected:
+	void set2DMatrix(vector< vector<int> >);
+	void write2DMatrix();
+
+private:
 	vector< vector<int> > _2Dmatrix;
-	void write2DMatrix(vector< vector<int> >);
 
 };
 

@@ -38,7 +38,7 @@ void CLecs::initNVIC()
 * Description    : Initialize 3D Led Matrix
 * Input          : None (void)
 * Output         : None (void)
-* Return		 : None
+* Return		 	   : None
 *******************************************************************************/
 void CLecs::init3DLedMatrix()
 {
@@ -51,11 +51,11 @@ void CLecs::init3DLedMatrix()
 	
 	/*Init Layers*******************************************************************
 	
-		layer 0 led 0	PE6	 output		11	GPIO		LS_0
-		layer 1 led 1	PC13 output	  12	GPIO		LS_1
-		layer 2 led 2	PE4	 output		13	GPIO		LS_2
-		layer 3 led 3	PE5	 output		14	GPIO		LS_3
-		layer 4 led 4	PE2	 output		15	GPIO		LS_4
+		layer 0 PE6	 output		11	GPIO		LS_0
+		layer 1 PC13 output	  12	GPIO		LS_1
+		layer 2 PE4	 output		13	GPIO		LS_2
+		layer 3 PE5	 output		14	GPIO		LS_3
+		layer 4 PE2	 output		15	GPIO		LS_4
 	
 	*/
 	
@@ -295,15 +295,15 @@ void vLDRTask( void *pvParameters )
 	}
 }
 
-
+#include "C2DLedMatrix.h"
  //só para fins de testes
 void vTaskTest(void *pvParameters)
 {
-	CLeds leds; CLayer layer;
+	CLeds leds; C2DLedMatrix matrix;
 	CSensors* Sensors = CSensors::getInstance();
 	for( ;; )
 	{	
-		layer.writeLayer(3);
+		matrix.write2DMatrix();
 //		if(Sensors->getDataLdr() == 3)
 //			{
 //				leds.resetBlue();
