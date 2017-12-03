@@ -386,19 +386,54 @@
               <FilePath>.\main.cpp</FilePath>
             </File>
             <File>
-              <FileName>CLdrSensor.cpp</FileName>
+              <FileName>CLecs.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\CLdrSensor.cpp</FilePath>
+              <FilePath>.\CLecs.cpp</FilePath>
             </File>
             <File>
-              <FileName>stm32f4_ISRs.cpp</FileName>
+              <FileName>CSensors.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\stm32f4_ISRs.cpp</FilePath>
+              <FilePath>.\CSensors.cpp</FilePath>
             </File>
             <File>
-              <FileName>CInitialization.cpp</FileName>
+              <FileName>CCapSensors.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\CInitialization.cpp</FilePath>
+              <FilePath>.\CCapSensors.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CLightSensor.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLightSensor.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CMicrophone.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CMicrophone.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CTimer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CTimer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C2DLedMatrix.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C2DLedMatrix.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrix.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C3DLedMatrix.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrixBuffer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C3DLedMatrixBuffer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CLayer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLayer.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -411,19 +446,64 @@
               <FilePath>.\CBoardLeds.h</FilePath>
             </File>
             <File>
-              <FileName>CLdrSensor.h</FileName>
+              <FileName>CLecs.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\CLdrSensor.h</FilePath>
+              <FilePath>.\CLecs.h</FilePath>
             </File>
             <File>
-              <FileName>stm32f4_ISRs.h</FileName>
+              <FileName>CSensors.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\stm32f4_ISRs.h</FilePath>
+              <FilePath>.\CSensors.h</FilePath>
             </File>
             <File>
-              <FileName>CInitializations.h</FileName>
+              <FileName>CCapSensors.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\CInitializations.h</FilePath>
+              <FilePath>.\CCapSensors.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLightSensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLightSensor.h</FilePath>
+            </File>
+            <File>
+              <FileName>CMicrophone.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CMicrophone.h</FilePath>
+            </File>
+            <File>
+              <FileName>CTimer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CTimer.h</FilePath>
+            </File>
+            <File>
+              <FileName>C2DLedMatrix.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C2DLedMatrix.h</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrix.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C3DLedMatrix.h</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrixBuffer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C3DLedMatrixBuffer.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLayer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLayer.h</FilePath>
+            </File>
+            <File>
+              <FileName>main.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\main.h</FilePath>
+            </File>
+            <File>
+              <FileName>freertos.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\freertos.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,5 +1,4 @@
-/*
- ****************************************************** LECS ********************************************************
+/******************************************************* LECS ********************************************************************************************************
  * by Cristiano Rodrigues and Ivo Marques
  *
  * Project features:
@@ -12,41 +11,22 @@
  * - Detect low and high frequencies (bass and treble) based in analyses the sound captured by microphone;
  * - Standby mode to save energy (when the luminosity is too high, LEDS power off).
  *
- ********************************************************************************************************************/
+ *********************************************************************************************************************************************************************/
 
-/* Scheduler includes. */
-#include <FreeRTOS.h>
-#include <task.h>
-#include <queue.h>
-
-/* Library includes. */
-#include <stm32f4xx.h>
-
-/* Our includes*/
-#include "CInitializations.h"
-
-
-uint16_t value;
+/*Our includes*/
+#include "main.h"
+#include "CLecs.h"
 
 int main()
 {
-	CInitializations LECS;
+	CLecs* Lecs = CLecs::getInstance();
 	
-	LECS.init3DLedMatrix();
-	LECS.initCapacitiveSensor();
-	LECS.initLightSensor();
-	LECS.initMicrophone();
+	Lecs->initNVIC();
+	Lecs->init3DLedMatrix();
+	Lecs->initLecsSensors();
+	Lecs->initSemaphores();
+	Lecs->initQueue();
+	Lecs->run();
 	
-	if( !LECS.initTasks() )
-	{
-			/* Start the Scheduler */ 
-			vTaskStartScheduler(); 
-	}
-	else
-	{
-			/* ERROR! Creating the Tasks */
-			return -2;
-	}
-	
-	return 0;
+	while(1);
 }
