@@ -23,7 +23,7 @@ int main()
 	
 	Lecs->initNVIC();
 	Lecs->init3DLedMatrix();
-	Lecs->initLecsSensors();
+	//Lecs->initLecsSensors();
 	Lecs->initSemaphores();
 	Lecs->initQueue();
 	Lecs->run();

@@ -35,6 +35,7 @@
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_tim.h
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_usart.h
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc.h
+.\objects\clecs.o: CLayer.h
 .\objects\clecs.o: CSensors.h
 .\objects\clecs.o: CBoardLeds.h
 .\objects\clecs.o: CLightSensor.h
