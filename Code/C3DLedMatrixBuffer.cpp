@@ -16,23 +16,22 @@ C3DLedMatrixBuffer::~C3DLedMatrixBuffer()
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-void C3DLedMatrixBuffer::pushFrame(C3DLedMatrix _3DMatrix)
+void C3DLedMatrixBuffer::pushFrame(C3DLedMatrix *_3DMatrix)
 {
 	buffer3DLedMatrixFrames.push(_3DMatrix);
+
 }
 
 /*******************************************************************************
-* Function Name  : pushFrame
+* Function Name  : popFrame
 * Description    : remove one frame of the C3DLedMatrix of the buffer
 * Input          : None 
 * Output         : C3DLedMatrix 
 * Return			   : C3DLedMatrix _3DMatrix, frame
 *******************************************************************************/
-C3DLedMatrix C3DLedMatrixBuffer::popFrameAndWrite()
+C3DLedMatrix *C3DLedMatrixBuffer::popFrame()
 {
-	C3DLedMatrix toReturn = buffer3DLedMatrixFrames.front(); //acesse last elemente of the queue
-	buffer3DLedMatrixFrames.pop();//remove last elemente os the queue
-	return toReturn;
+	return (buffer3DLedMatrixFrames.pop());
 }
 
 C3DLedMatrixBuffer* C3DLedMatrixBuffer::instance = 0;

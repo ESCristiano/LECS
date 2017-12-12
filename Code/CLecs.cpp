@@ -67,7 +67,7 @@ void CLecs::init3DLedMatrix()
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP; // push/pull 
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL; // pullup/pulldown resistors inactive
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP; // pullup/pulldown resistors inactive
 	// Setting GPIO peripheral corresponding bits
 	GPIO_Init(GPIOC, &GPIO_InitStruct);
 	
@@ -79,7 +79,7 @@ void CLecs::init3DLedMatrix()
 	GPIO_InitStruct_1.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_1.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_1.GPIO_OType = GPIO_OType_PP; // push/pull 
-	GPIO_InitStruct_1.GPIO_PuPd = GPIO_PuPd_NOPULL; // pullup/pulldown resistors inactive
+	GPIO_InitStruct_1.GPIO_PuPd = GPIO_PuPd_UP; // pullup/pulldown resistors inactive
 	// Setting GPIO peripheral corresponding bits
 	GPIO_Init(GPIOE, &GPIO_InitStruct_1);
 	
@@ -295,46 +295,220 @@ void vLDRTask( void *pvParameters )
 	}
 }
 
-#include "C2DLedMatrix.h"
+#include "C3DLedMatrix.h"
+#include "C3DLedMatrixBuffer.h"
+
  //só para fins de testes
 void vTaskTest(void *pvParameters)
 {
-	CLeds leds; C2DLedMatrix matrix;
+	CLeds leds; ;
 	CSensors* Sensors = CSensors::getInstance();
+
+	
+	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+	
+	char*** _3Dmatrix;
+	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+	for (int i = 0; i < __LAYERS; ++i)
+	{
+		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+		for (int j = 0; j < __ROWS; ++j)
+		{
+			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+			
+		}
+	}
+	
+int i = 0, x = 200;
+//C3DLedMatrix *mat3D = new C3DLedMatrix;
+			
+	    _3Dmatrix[0][0][0] = 1;
+			_3Dmatrix[1][0][0] = 1;
+			_3Dmatrix[2][0][0] = 1;
+			_3Dmatrix[3][0][0] = 1;
+			_3Dmatrix[4][0][0] = 1;
+			
+			_3Dmatrix[0][0][1] = 1;
+			_3Dmatrix[1][0][1] = 1;
+			_3Dmatrix[2][0][1] = 1;
+			_3Dmatrix[3][0][1] = 1;
+			_3Dmatrix[4][0][1] = 1;
+			
+			_3Dmatrix[0][0][2] = 1;
+			_3Dmatrix[1][0][2] = 1;
+			_3Dmatrix[2][0][2] = 1;
+			_3Dmatrix[3][0][2] = 1;
+			_3Dmatrix[4][0][2] = 1;
+			
+			_3Dmatrix[0][0][3] = 1;
+			_3Dmatrix[1][0][3] = 1;
+			_3Dmatrix[2][0][3] = 1;
+			_3Dmatrix[3][0][3] = 1;
+			_3Dmatrix[4][0][3] = 1;
+				
+			_3Dmatrix[0][0][4] = 1;
+			_3Dmatrix[1][0][4] = 1;
+			_3Dmatrix[2][0][4] = 1;
+			_3Dmatrix[3][0][4] = 1;
+			_3Dmatrix[4][0][4] = 1;
+			
+	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	matrix3D->set3DMatrix(_3Dmatrix);
+	buffer->pushFrame(matrix3D);
+//	buffer->popFrame()->write3DMatrix();
+	
 	for( ;; )
 	{	
-//		matrix.write2DMatrix();
-//		if(Sensors->getDataLdr() == 3)
-//			{
-//				leds.resetBlue();
-//				leds.resetGreen();
-//				leds.resetRed();
-//				leds.setOrange();
-//			}			
-//			else
-//				if(Sensors->getDataLdr()  == 2)
-//				{
-//					leds.resetBlue();
-//					leds.resetGreen();
-//					leds.resetOrange();
-//					leds.setRed();
+		i++;
+	buffer->popFrame()->write3DMatrix();
+	leds.toggleBlue();
+		vTaskDelay(1 / portTICK_RATE_MS);
+//		if(i < 500/x) //1
+//		{
+//			_3Dmatrix[0][0][0] = 0;
+//			_3Dmatrix[1][0][0] = 0;
+//			_3Dmatrix[2][0][0] = 0;
+//			_3Dmatrix[3][0][0] = 0;
+//			_3Dmatrix[4][0][0] = 0;
+//			
+//			_3Dmatrix[0][0][1] = 0;
+//			_3Dmatrix[1][0][1] = 0;
+//			_3Dmatrix[2][0][1] = 0;
+//			_3Dmatrix[3][0][1] = 0;
+//			_3Dmatrix[4][0][1] = 0;
+//			
+//			_3Dmatrix[0][0][2] = 1;
+//			_3Dmatrix[1][0][2] = 1;
+//			_3Dmatrix[2][0][2] = 1;
+//			_3Dmatrix[3][0][2] = 1;
+//			_3Dmatrix[4][0][2] = 1;
+//			
+//			_3Dmatrix[0][0][3] = 0;
+//			_3Dmatrix[1][0][3] = 0;
+//			_3Dmatrix[2][0][3] = 0;
+//			_3Dmatrix[3][0][3] = 0;
+//			_3Dmatrix[4][0][3] = 0;
 //				
-//				}				
-//				else
-//					if(Sensors->getDataLdr()  == 1)
-//					{
-//						leds.resetRed();
-//						leds.resetGreen();
-//						leds.resetOrange();
-//						leds.setBlue();	
-//					}
-//					else
-//						{	
-//						leds.resetRed();
-//						leds.resetBlue();
-//						leds.resetOrange();
-//						leds.setGreen();	
-//						}
+//			_3Dmatrix[0][0][4] = 0;
+//			_3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[4][0][4] = 0;
+//			
+//		
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}else
+//		if(i < 1000/x)//2
+//		{
+//			_3Dmatrix[0][0][0] = 0;
+//			_3Dmatrix[1][0][0] = 0;
+//			_3Dmatrix[2][0][0] = 0;
+//			_3Dmatrix[3][0][0] = 0;
+//			_3Dmatrix[4][0][0] = 1;
+//			
+//			_3Dmatrix[0][0][1] = 0;
+//			_3Dmatrix[1][0][1] = 0;
+//			_3Dmatrix[2][0][1] = 0;
+//			_3Dmatrix[3][0][1] = 1;
+//			_3Dmatrix[4][0][1] = 0;
+//			
+//			_3Dmatrix[0][0][2] = 0;
+//			_3Dmatrix[1][0][2] = 0;
+//			_3Dmatrix[2][0][2] = 1;
+//			_3Dmatrix[3][0][2] = 0;
+//			_3Dmatrix[4][0][2] = 0;
+//			
+//			_3Dmatrix[0][0][3] = 0;
+//			_3Dmatrix[1][0][3] = 1;
+//			_3Dmatrix[2][0][3] = 0;
+//			_3Dmatrix[3][0][3] = 0;
+//			_3Dmatrix[4][0][3] = 0;
+//				
+//			_3Dmatrix[0][0][4] = 1;
+//			_3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[4][0][4] = 0;
+//			
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+
+//		}else
+//		if(i < 1500/x)//3
+//		{
+//			_3Dmatrix[0][0][0] = 0;
+//			_3Dmatrix[1][0][0] = 0;
+//			_3Dmatrix[2][0][0] = 1;
+//			_3Dmatrix[3][0][0] = 0;
+//			_3Dmatrix[4][0][0] = 0;
+//			
+//			_3Dmatrix[0][0][1] = 0;
+//			_3Dmatrix[1][0][1] = 0;
+//			_3Dmatrix[2][0][1] = 1;
+//			_3Dmatrix[3][0][1] = 0;
+//			_3Dmatrix[4][0][1] = 0;
+//			
+//			_3Dmatrix[0][0][2] = 0;
+//			_3Dmatrix[1][0][2] = 0;
+//			_3Dmatrix[2][0][2] = 1;
+//			_3Dmatrix[3][0][2] = 0;
+//			_3Dmatrix[4][0][2] = 0;
+//			
+//			_3Dmatrix[0][0][3] = 0;
+//			_3Dmatrix[1][0][3] = 0;
+//			_3Dmatrix[2][0][3] = 1;
+//			_3Dmatrix[3][0][3] = 0;
+//			_3Dmatrix[4][0][3] = 0;
+//				
+//			_3Dmatrix[0][0][4] = 0;
+//			_3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[2][0][4] = 1;
+//			_3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[4][0][4] = 0;
+//			
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}else
+//		if(i < 2000/x)//4
+//		{
+//			i = 0;
+//			_3Dmatrix[0][0][0] = 1;
+//			_3Dmatrix[1][0][0] = 0;
+//			_3Dmatrix[2][0][0] = 0;
+//			_3Dmatrix[3][0][0] = 0;
+//			_3Dmatrix[4][0][0] = 0;
+//			
+//			_3Dmatrix[0][0][1] = 0;
+//			_3Dmatrix[1][0][1] = 1;
+//			_3Dmatrix[2][0][1] = 0;
+//			_3Dmatrix[3][0][1] = 0;
+//			_3Dmatrix[4][0][1] = 0;
+//			
+//			_3Dmatrix[0][0][2] = 0;
+//			_3Dmatrix[1][0][2] = 0;
+//			_3Dmatrix[2][0][2] = 1;
+//			_3Dmatrix[3][0][2] = 0;
+//			_3Dmatrix[4][0][2] = 0;
+//			
+//			_3Dmatrix[0][0][3] = 0;
+//			_3Dmatrix[1][0][3] = 0;
+//			_3Dmatrix[2][0][3] = 0;
+//			_3Dmatrix[3][0][3] = 1;
+//			_3Dmatrix[4][0][3] = 0;
+//				
+//			_3Dmatrix[0][0][4] = 0;
+//			_3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[4][0][4] = 1;
+//			
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}
 		}
 }
 

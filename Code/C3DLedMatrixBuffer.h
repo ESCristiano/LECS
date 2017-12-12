@@ -1,18 +1,16 @@
 #ifndef _C3DLEDMATRIXBUFFER_H
 #define _C3DLEDMATRIXBUFFER_H
 
-#include <queue>
 #include "C3DLedMatrix.h"
-
-using namespace std;
+#include "CQueue.h"
 
 class C3DLedMatrixBuffer {
 public:
-	void pushFrame(C3DLedMatrix);
-	C3DLedMatrix popFrameAndWrite();
+	void pushFrame(C3DLedMatrix*);
+	C3DLedMatrix* popFrame();
 	static C3DLedMatrixBuffer* getInstance();
 private:
-	queue<C3DLedMatrix> buffer3DLedMatrixFrames;
+	CQueue buffer3DLedMatrixFrames; 
 	static C3DLedMatrixBuffer* instance;
 	C3DLedMatrixBuffer();
 	~C3DLedMatrixBuffer();

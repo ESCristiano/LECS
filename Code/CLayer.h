@@ -4,6 +4,8 @@
 #ifndef _CLAYER_H
 #define _CLAYER_H
 
+#define __LAYERS 	5
+
 class CLayer {
 	
 public:

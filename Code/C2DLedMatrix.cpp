@@ -6,28 +6,28 @@
 C2DLedMatrix::C2DLedMatrix()
 {
 	
-	/*  Initialize 2D Led Matrix
+	/*  Allocate memory and 
+	 Initialize 2D Led Matrix
 			{ 0, 0, 0, 0, 0 }
 			{ 0, 0, 0, 0, 0 }
 			{ 0, 0, 0, 0, 0 }
 			{ 0, 0, 0, 0, 0 }
 			{ 0, 0, 0, 0, 0 } 
 	*/
-
-	/*Create a empty vector
-			{ 0, 0, 0, 0, 0 }
-	*/
-	vector<int> row(5,0); 
 	
-	for (int i = 0; i < 5; i++)
-	{
-		_2Dmatrix.push_back(row);
-	}
+	_2Dmatrix = new char*[5];
+
+	for (int i = 0; i < 5; ++i)
+		_2Dmatrix[i] = new char[5](); // allocate and set all elements 0
 }
 
 
 C2DLedMatrix::~C2DLedMatrix()
 {
+	/*deallocate matrix*/
+	for (int i = 0; i < 5; ++i)
+    delete [] _2Dmatrix[i];
+	delete [] _2Dmatrix;
 }
 
 /*******************************************************************************
@@ -37,14 +37,23 @@ C2DLedMatrix::~C2DLedMatrix()
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-void C2DLedMatrix::set2DMatrix(vector< vector<int> > matrix)
+void C2DLedMatrix::set2DMatrix(char **matrix)
 {
-	_2Dmatrix = matrix;
+	/*
+		copy matrix to _2Dmatrix
+		_2Dmatrix = matrix
+	*/
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < 5; j++)
+			_2Dmatrix[i][j] = matrix[i][j];
+	
+	}
 }
 
 /*******************************************************************************
 * Function Name  : write2DMatrix
-* Description    : set one 2DMatrix
+* Description    : write in physical 2D Matrix
 * Input          : None 
 * Output         : None 
 * Return			   : None
@@ -84,9 +93,8 @@ void C2DLedMatrix::write2DMatrix()
 	column led 24	PD12	output	44		green led	*	CS_24
 	
 	*/
-	
-//	GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) _2Dmatrix[0][0]);
-GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) 1);
+
+	GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) _2Dmatrix[0][0]);
 	GPIO_WriteBit(GPIOA, GPIO_Pin_2, 	(BitAction) _2Dmatrix[0][1]);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_5, 	(BitAction) _2Dmatrix[0][2]);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_4, 	(BitAction) _2Dmatrix[0][3]);
@@ -115,6 +123,36 @@ GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) 1);
 	GPIO_WriteBit(GPIOD, GPIO_Pin_10, (BitAction) _2Dmatrix[4][2]);
 	GPIO_WriteBit(GPIOD, GPIO_Pin_11, (BitAction) _2Dmatrix[4][3]);
 	GPIO_WriteBit(GPIOD, GPIO_Pin_12, (BitAction) _2Dmatrix[4][4]);
+	
+//	GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOA, GPIO_Pin_2, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOC, GPIO_Pin_5, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOC, GPIO_Pin_4, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_1, 	(BitAction) 0);
+//	
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_0, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_7,	(BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_8, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_9, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_10, (BitAction) 0);
+//	
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_11, (BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_12,	(BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_13, (BitAction)0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_14, (BitAction) 0);
+//	GPIO_WriteBit(GPIOE, GPIO_Pin_15, (BitAction) 0);
+//	
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_11, (BitAction) 0);
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_12,	(BitAction) 0);
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_13, (BitAction) 0);
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_14, (BitAction) 0);
+//	GPIO_WriteBit(GPIOB, GPIO_Pin_15, (BitAction) 0);
+//	
+//	GPIO_WriteBit(GPIOD, GPIO_Pin_8, 	(BitAction) 0);
+//	GPIO_WriteBit(GPIOD, GPIO_Pin_9,	(BitAction) 0);
+//	GPIO_WriteBit(GPIOD, GPIO_Pin_10, (BitAction) 0);
+//	GPIO_WriteBit(GPIOD, GPIO_Pin_11, (BitAction)0);
+//	GPIO_WriteBit(GPIOD, GPIO_Pin_12, (BitAction) 0);
 	
 }
 

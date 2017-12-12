@@ -1,6 +1,3 @@
-#ifndef _CLIGHTSENSOR_H
-#define _CLIGHTSENSOR_H
-
 /*
 http://www.micromouseonline.com/2016/02/03/tim3-arr-regular-interrupts-stm32f4/
 
@@ -12,6 +9,9 @@ How use this module:
 	3 -> readLDR();
 	4 -> closeLDR();
 */
+
+#ifndef _CLIGHTSENSOR_H
+#define _CLIGHTSENSOR_H
 
 /*-------------Includes ---------------*/
 #include "freertos.h"
