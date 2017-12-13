@@ -17,7 +17,6 @@
 #include "main.h"
 #include "CLecs.h"
 
-#include <stdlib.h>
 int main()
 {
 	CLecs* Lecs = CLecs::getInstance();
@@ -32,29 +31,3 @@ int main()
 	while(1);
 }
 
-/*
-	Overload of opeartor new and delete because they use malloc and free
-that aren not thread safe
-*/
-void *operator new(size_t size)
-{
-   void *p;
-
-   if(uxTaskGetNumberOfTasks())
-      p=pvPortMalloc(size); //thread safe
-   else
-      p=malloc(size); //no thread safe, just when we have only one thread
-
-   return p;
-}
-
-void operator delete(void *p)
-{
-   if(uxTaskGetNumberOfTasks())
-      vPortFree( p );//thread safe
-   else
-      free( p );//no thread safe, just when we have only one thread
-
-   p = NULL;
-
-}

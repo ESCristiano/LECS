@@ -1,7 +1,11 @@
+#include <stdlib.h>
+
 #include "CLecs.h"
+#include "CTimer.h"
 #include "CSensors.h"
 #include "CBoardLeds.h"
 #include "CLightSensor.h"
+#include "C3DLedMatrixBuffer.h"
 
 CLecs::CLecs()
 {
@@ -178,6 +182,15 @@ void CLecs::init3DLedMatrix()
 	// Setting GPIO peripheral corresponding bits
 	GPIO_Init(GPIOE, &GPIO_InitStruct_6);
 	/*******************************************************************************/
+	
+	CTimer timer6; //basic timer (timer 6 or timer 7)
+	
+	/*Interrupt in 1ms in 1ms*/
+	timer6.timerInit(42000, 2, RCC_APB1Periph_TIM6, TIM6);
+	timer6.timerInterruptInit(TIM6_DAC_IRQn);
+	timer6.timerInterruptEnable(TIM6);
+	timer6.timerStart(TIM6);
+	
 }
 
 /*******************************************************************************
@@ -203,11 +216,13 @@ void CLecs::initLecsSensors()
 void CLecs::initSemaphores()
 {
 	extern SemaphoreHandle_t Sem_ISR_3D;  				//When an interrupt occur this semaphore is released and the Update Matrix Task, leave your state of wait, and execute your function.
+	extern SemaphoreHandle_t Sem_ISR_ChangePattern; //When an interrupt occur this semaphore is released and the change pattern, leave your state of wait, and execute your function.
 	extern SemaphoreHandle_t Sem_ISR_Sleep;   		//when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
 	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
 
 	/*Binary Semaphore Creations*/
 	Sem_ISR_3D = xSemaphoreCreateBinary();
+	Sem_ISR_ChangePattern = xSemaphoreCreateBinary();
 	Sem_ISR_Sleep = xSemaphoreCreateBinary();
 	Sem_DataMining_Sleep = xSemaphoreCreateBinary();
 }
@@ -295,8 +310,32 @@ void vLDRTask( void *pvParameters )
 	}
 }
 
+/*******************************************************************************
+* Function Name  : vUpdateMatrixTask
+* Description    : call function of the task Update Matrix Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vUpdateMatrixTask()
+{
+	extern SemaphoreHandle_t Sem_ISR_3D, Sem_ISR_ChangePattern;
+	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	
+	if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
+        {
+					matrix3D = buffer->popFrame();
+        }
+
+	if( xSemaphoreTake( Sem_ISR_3D, 0 ) == pdTRUE ) // change layer (1ms)
+        {
+					matrix3D->write3DMatrix();
+        }
+}
+
 #include "C3DLedMatrix.h"
-#include "C3DLedMatrixBuffer.h"
+
 
  //só para fins de testes
 void vTaskTest(void *pvParameters)
@@ -319,196 +358,62 @@ void vTaskTest(void *pvParameters)
 		}
 	}
 	
-int i = 0, x = 200;
-//C3DLedMatrix *mat3D = new C3DLedMatrix;
-			
-	    _3Dmatrix[0][0][0] = 1;
-			_3Dmatrix[1][0][0] = 1;
-			_3Dmatrix[2][0][0] = 1;
-			_3Dmatrix[3][0][0] = 1;
-			_3Dmatrix[4][0][0] = 1;
-			
-			_3Dmatrix[0][0][1] = 1;
-			_3Dmatrix[1][0][1] = 1;
-			_3Dmatrix[2][0][1] = 1;
-			_3Dmatrix[3][0][1] = 1;
-			_3Dmatrix[4][0][1] = 1;
-			
-			_3Dmatrix[0][0][2] = 1;
-			_3Dmatrix[1][0][2] = 1;
-			_3Dmatrix[2][0][2] = 1;
-			_3Dmatrix[3][0][2] = 1;
-			_3Dmatrix[4][0][2] = 1;
-			
-			_3Dmatrix[0][0][3] = 1;
-			_3Dmatrix[1][0][3] = 1;
-			_3Dmatrix[2][0][3] = 1;
-			_3Dmatrix[3][0][3] = 1;
-			_3Dmatrix[4][0][3] = 1;
-				
-			_3Dmatrix[0][0][4] = 1;
-			_3Dmatrix[1][0][4] = 1;
-			_3Dmatrix[2][0][4] = 1;
-			_3Dmatrix[3][0][4] = 1;
-			_3Dmatrix[4][0][4] = 1;
-			
+int i = 0;		
 	C3DLedMatrix* matrix3D = new C3DLedMatrix;
-	matrix3D->set3DMatrix(_3Dmatrix);
-	buffer->pushFrame(matrix3D);
-//	buffer->popFrame()->write3DMatrix();
-	
 	for( ;; )
 	{	
-		i++;
-	buffer->popFrame()->write3DMatrix();
+		i++; 
+		vUpdateMatrixTask();
+	//	buffer->pushFrame(matrix3D);
 	leds.toggleBlue();
-		vTaskDelay(1 / portTICK_RATE_MS);
-//		if(i < 500/x) //1
-//		{
-//			_3Dmatrix[0][0][0] = 0;
-//			_3Dmatrix[1][0][0] = 0;
-//			_3Dmatrix[2][0][0] = 0;
-//			_3Dmatrix[3][0][0] = 0;
-//			_3Dmatrix[4][0][0] = 0;
-//			
-//			_3Dmatrix[0][0][1] = 0;
-//			_3Dmatrix[1][0][1] = 0;
-//			_3Dmatrix[2][0][1] = 0;
-//			_3Dmatrix[3][0][1] = 0;
-//			_3Dmatrix[4][0][1] = 0;
-//			
-//			_3Dmatrix[0][0][2] = 1;
-//			_3Dmatrix[1][0][2] = 1;
-//			_3Dmatrix[2][0][2] = 1;
-//			_3Dmatrix[3][0][2] = 1;
-//			_3Dmatrix[4][0][2] = 1;
-//			
-//			_3Dmatrix[0][0][3] = 0;
-//			_3Dmatrix[1][0][3] = 0;
-//			_3Dmatrix[2][0][3] = 0;
-//			_3Dmatrix[3][0][3] = 0;
-//			_3Dmatrix[4][0][3] = 0;
-//				
-//			_3Dmatrix[0][0][4] = 0;
-//			_3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[4][0][4] = 0;
-//			
-//		
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}else
-//		if(i < 1000/x)//2
-//		{
-//			_3Dmatrix[0][0][0] = 0;
-//			_3Dmatrix[1][0][0] = 0;
-//			_3Dmatrix[2][0][0] = 0;
-//			_3Dmatrix[3][0][0] = 0;
-//			_3Dmatrix[4][0][0] = 1;
-//			
-//			_3Dmatrix[0][0][1] = 0;
-//			_3Dmatrix[1][0][1] = 0;
-//			_3Dmatrix[2][0][1] = 0;
-//			_3Dmatrix[3][0][1] = 1;
-//			_3Dmatrix[4][0][1] = 0;
-//			
-//			_3Dmatrix[0][0][2] = 0;
-//			_3Dmatrix[1][0][2] = 0;
-//			_3Dmatrix[2][0][2] = 1;
-//			_3Dmatrix[3][0][2] = 0;
-//			_3Dmatrix[4][0][2] = 0;
-//			
-//			_3Dmatrix[0][0][3] = 0;
-//			_3Dmatrix[1][0][3] = 1;
-//			_3Dmatrix[2][0][3] = 0;
-//			_3Dmatrix[3][0][3] = 0;
-//			_3Dmatrix[4][0][3] = 0;
-//				
-//			_3Dmatrix[0][0][4] = 1;
-//			_3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[4][0][4] = 0;
-//			
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-
-//		}else
-//		if(i < 1500/x)//3
-//		{
-//			_3Dmatrix[0][0][0] = 0;
-//			_3Dmatrix[1][0][0] = 0;
-//			_3Dmatrix[2][0][0] = 1;
-//			_3Dmatrix[3][0][0] = 0;
-//			_3Dmatrix[4][0][0] = 0;
-//			
-//			_3Dmatrix[0][0][1] = 0;
-//			_3Dmatrix[1][0][1] = 0;
-//			_3Dmatrix[2][0][1] = 1;
-//			_3Dmatrix[3][0][1] = 0;
-//			_3Dmatrix[4][0][1] = 0;
-//			
-//			_3Dmatrix[0][0][2] = 0;
-//			_3Dmatrix[1][0][2] = 0;
-//			_3Dmatrix[2][0][2] = 1;
-//			_3Dmatrix[3][0][2] = 0;
-//			_3Dmatrix[4][0][2] = 0;
-//			
-//			_3Dmatrix[0][0][3] = 0;
-//			_3Dmatrix[1][0][3] = 0;
-//			_3Dmatrix[2][0][3] = 1;
-//			_3Dmatrix[3][0][3] = 0;
-//			_3Dmatrix[4][0][3] = 0;
-//				
-//			_3Dmatrix[0][0][4] = 0;
-//			_3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[2][0][4] = 1;
-//			_3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[4][0][4] = 0;
-//			
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}else
-//		if(i < 2000/x)//4
-//		{
-//			i = 0;
-//			_3Dmatrix[0][0][0] = 1;
-//			_3Dmatrix[1][0][0] = 0;
-//			_3Dmatrix[2][0][0] = 0;
-//			_3Dmatrix[3][0][0] = 0;
-//			_3Dmatrix[4][0][0] = 0;
-//			
-//			_3Dmatrix[0][0][1] = 0;
-//			_3Dmatrix[1][0][1] = 1;
-//			_3Dmatrix[2][0][1] = 0;
-//			_3Dmatrix[3][0][1] = 0;
-//			_3Dmatrix[4][0][1] = 0;
-//			
-//			_3Dmatrix[0][0][2] = 0;
-//			_3Dmatrix[1][0][2] = 0;
-//			_3Dmatrix[2][0][2] = 1;
-//			_3Dmatrix[3][0][2] = 0;
-//			_3Dmatrix[4][0][2] = 0;
-//			
-//			_3Dmatrix[0][0][3] = 0;
-//			_3Dmatrix[1][0][3] = 0;
-//			_3Dmatrix[2][0][3] = 0;
-//			_3Dmatrix[3][0][3] = 1;
-//			_3Dmatrix[4][0][3] = 0;
-//				
-//			_3Dmatrix[0][0][4] = 0;
-//			_3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[4][0][4] = 1;
-//			
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}
+//			vTaskDelay(50 / portTICK_RATE_MS);
+		if(i == 50000) //1
+		{
+			_3Dmatrix[4][0][0] = 1; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 1; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 1; _3Dmatrix[1][0][4] = 0;
+			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 1;
+			
+		
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+		}else
+		if(i == 100000)//2
+		{
+			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 1; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 1; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 1; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 1; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+		}else
+		if(i == 150000)//3
+		{
+			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 1;
+			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 1; _3Dmatrix[3][0][4] = 0;
+			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 1; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+			_3Dmatrix[0][0][0] = 1; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+			
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+		}else
+		if(i == 200000)//4
+		{
+			i = 0;
+			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
+			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+		}
 		}
 }
 
@@ -586,3 +491,29 @@ CLecs * CLecs::getInstance()
 	return instance;
 }
 
+/*
+	Overload of opeartor new and delete because they use malloc and free
+that aren not thread safe
+*/
+void *operator new(size_t size)
+{
+   void *p;
+
+   if(uxTaskGetNumberOfTasks())
+      p=pvPortMalloc(size); //thread safe
+   else
+      p=malloc(size); //no thread safe, just when we have only one thread
+
+   return p;
+}
+
+void operator delete(void *p)
+{
+   if(uxTaskGetNumberOfTasks())
+      vPortFree( p );//thread safe
+   else
+      free( p );//no thread safe, just when we have only one thread
+
+   p = NULL;
+
+}

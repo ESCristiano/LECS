@@ -1,4 +1,5 @@
 .\objects\clecs.o: CLecs.cpp
+.\objects\clecs.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\clecs.o: CLecs.h
 .\objects\clecs.o: freertos.h
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include\FreeRTOS.h
@@ -36,11 +37,11 @@
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_usart.h
 .\objects\clecs.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc.h
 .\objects\clecs.o: CLayer.h
+.\objects\clecs.o: CTimer.h
 .\objects\clecs.o: CSensors.h
 .\objects\clecs.o: CBoardLeds.h
 .\objects\clecs.o: CLightSensor.h
-.\objects\clecs.o: CTimer.h
+.\objects\clecs.o: C3DLedMatrixBuffer.h
 .\objects\clecs.o: C3DLedMatrix.h
 .\objects\clecs.o: C2DLedMatrix.h
-.\objects\clecs.o: C3DLedMatrixBuffer.h
 .\objects\clecs.o: CQueue.h

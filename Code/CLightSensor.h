@@ -27,7 +27,7 @@ public:
 	uint16_t readLDR();
 	static CLightSensor* getInstance();
 private:
-	CTimer timer7;
+	CTimer timer7; //basic timer (timer 6 or timer 7)
 	uint16_t mvalueLdr; // temporária para testes
 	static CLightSensor* instance;
 	CLightSensor();

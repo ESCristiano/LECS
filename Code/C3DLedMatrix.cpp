@@ -1,6 +1,7 @@
 #include "C3DLedMatrix.h"
 
-
+#include "CTimer.h"
+#include "C3DLedMatrixBuffer.h"
 
 C3DLedMatrix::C3DLedMatrix()
 :CLayer(), C2DLedMatrix()
@@ -43,6 +44,36 @@ C3DLedMatrix::~C3DLedMatrix()
 	
 	/*deallocate 3D matrix*/
 	delete [] _3Dmatrix; 
+}
+
+
+/*******************************************************************************
+* Function Name  : TIM6_DAC_IRQHandler
+* Description    : ISR timer 6
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+// extern "C" -> for C++, ensure the interrupt handler is linked as a C function
+extern "C" void TIM6_DAC_IRQHandler(void) 
+{
+	static int count = 0; 
+	extern SemaphoreHandle_t Sem_ISR_3D, Sem_ISR_ChangePattern;
+	static BaseType_t xHigherPriorityTaskWoken;
+	    xHigherPriorityTaskWoken = pdFALSE;
+	
+	if (TIM_GetITStatus (TIM6, TIM_IT_Update) != RESET) {
+
+	if(count++ == 32) //30 frames por second (32ms in 32 ms change frame)
+	{
+		xSemaphoreGiveFromISR( Sem_ISR_ChangePattern, &xHigherPriorityTaskWoken );
+		count = 0;
+	}
+	/* Unblock the task by releasing the semaphore. */
+	xSemaphoreGiveFromISR( Sem_ISR_3D, &xHigherPriorityTaskWoken );
+	TIM_ClearITPendingBit (TIM6, TIM_IT_Update); 
+  }
+	
 }
 
 /*******************************************************************************

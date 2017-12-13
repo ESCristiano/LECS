@@ -23,6 +23,7 @@
 /********************************************************************************************************************************************************************/
 
 SemaphoreHandle_t Sem_ISR_3D;  		//When an interrupt occur this semaphore is released and the Update Matrix Task, leave your state of wait, and execute your function.
+SemaphoreHandle_t Sem_ISR_ChangePattern; //When an interrupt occur this semaphore is released and the change pattern, leave your state of wait, and execute your function.
 SemaphoreHandle_t Sem_ISR_Sleep;   //when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
 SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
 

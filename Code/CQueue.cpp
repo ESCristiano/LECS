@@ -7,11 +7,21 @@ CQueue::CQueue():
 {
 	mutexPush = xSemaphoreCreateMutex();
 	mutexPop = xSemaphoreCreateMutex();
+	
+	for(int i=0 ; i<__FRAMES; i++)
+	{
+		data[i] = new C3DLedMatrix;
+	}
 }
 	
 
 CQueue::~CQueue()
 {
+	
+	for(int i=0 ; i<__FRAMES; i++)
+	{
+		delete[] data[i];
+	}
 }
 
 /*******************************************************************************
@@ -28,7 +38,6 @@ void CQueue::push(const C3DLedMatrix *t)
 	{
 		if (size() >= __FRAMES)
 			return;//error
-		data[write & (__FRAMES - 1)] = new C3DLedMatrix;
 		*data[write & (__FRAMES - 1)] = *t;
 		write++;
 		/*Unlock Mutex*/

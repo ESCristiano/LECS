@@ -5,7 +5,7 @@
 #include "C3DLedMatrix.h"
 
 
-#define __FRAMES 32
+#define __FRAMES 32 //just can be number 2^n -> 2,4,8,16,32....etc
 
 class CQueue {
 public:
