@@ -74,6 +74,15 @@ extern "C" void TIM6_DAC_IRQHandler(void)
 	TIM_ClearITPendingBit (TIM6, TIM_IT_Update); 
   }
 	
+	
+    /* If there was a task that was blocked on the semaphore, and giving the
+    semaphore caused the task to unblock, and the unblocked task has a priority
+    higher than the currently executing task (the task that this interrupt
+    interrupted), then lHigherPriorityTaskWoken will have been set to pdTRUE.
+    Passing pdTRUE into the following macro call will cause this interrupt to
+    return directly to the unblocked, higher priority, task. */
+//    portEND_SWITCHING_ISR( lHigherPriorityTaskWoken );
+	
 }
 
 /*******************************************************************************

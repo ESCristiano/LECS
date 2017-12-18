@@ -414,6 +414,14 @@ int i = 0;
 			matrix3D->set3DMatrix(_3Dmatrix);
 			buffer->pushFrame(matrix3D);
 		}
+					_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
+			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
 		}
 }
 

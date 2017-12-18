@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\LECS.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\LECS.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Wed Dec 13 02:06:23 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Dec 18 13:17:54 2017
 <BR><P>
 <H3>Maximum Stack Usage =        280 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -907,7 +907,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskTest(void*)
 </UL>
 
-<P><STRONG><a name="[6e]"></a>vTaskTest(void*)</STRONG> (Thumb, 904 bytes, Stack size 16 bytes, clecs.o(i._Z9vTaskTestPv))
+<P><STRONG><a name="[6e]"></a>vTaskTest(void*)</STRONG> (Thumb, 1076 bytes, Stack size 16 bytes, clecs.o(i._Z9vTaskTestPv))
 <BR><BR>[Stack]<UL><LI>Max Depth = 240<LI>Call Chain = vTaskTest(void*) &rArr; vUpdateMatrixTask() &rArr; C3DLedMatrixBuffer::getInstance() &rArr; C3DLedMatrixBuffer::C3DLedMatrixBuffer() &rArr; CQueue::CQueue() &rArr; xQueueCreateMutex &rArr; prvInitialiseMutex &rArr; xQueueGenericSend &rArr; prvUnlockQueue &rArr; prvNotifyQueueSetContainer &rArr; prvCopyDataToQueue &rArr; xTaskPriorityDisinherit
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CSensors::getInstance()
