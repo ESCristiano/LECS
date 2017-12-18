@@ -1,12 +1,37 @@
 #include "C3DLedMatrixBuffer.h"
 
-void C3DLedMatrixBuffer::pushFrame(C3DLedMatrix)
+C3DLedMatrixBuffer::C3DLedMatrixBuffer()
 {
 }
 
-C3DLedMatrix C3DLedMatrixBuffer::popFrameAndWrite()
+
+C3DLedMatrixBuffer::~C3DLedMatrixBuffer()
 {
-	return C3DLedMatrix();
+}
+
+/*******************************************************************************
+* Function Name  : pushFrame
+* Description    : put one frame of the C3DLedMatrix in the buffer
+* Input          : C3DLedMatrix _3DMatrix, frame 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void C3DLedMatrixBuffer::pushFrame(C3DLedMatrix *_3DMatrix)
+{
+	buffer3DLedMatrixFrames.push(_3DMatrix);
+
+}
+
+/*******************************************************************************
+* Function Name  : popFrame
+* Description    : remove one frame of the C3DLedMatrix of the buffer
+* Input          : None 
+* Output         : C3DLedMatrix 
+* Return			   : C3DLedMatrix _3DMatrix, frame
+*******************************************************************************/
+C3DLedMatrix *C3DLedMatrixBuffer::popFrame()
+{
+	return (buffer3DLedMatrixFrames.pop());
 }
 
 C3DLedMatrixBuffer* C3DLedMatrixBuffer::instance = 0;
@@ -20,11 +45,3 @@ C3DLedMatrixBuffer* C3DLedMatrixBuffer::getInstance()
 	return instance;
 }
 
-C3DLedMatrixBuffer::C3DLedMatrixBuffer()
-{
-}
-
-
-C3DLedMatrixBuffer::~C3DLedMatrixBuffer()
-{
-}

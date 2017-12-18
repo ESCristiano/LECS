@@ -1,10 +1,6 @@
 #ifndef _CMICROPHONE_H
 #define _CMICROPHONE_H
 
-#include <vector>
-
-using namespace std;
-
 class CMicrophone {
 public:
 	void initMicrophone();
@@ -14,7 +10,7 @@ public:
 	static CMicrophone* getInstance();
 private:
 	static CMicrophone* instance;
-	vector<int> soundWave;
+	int soundWave;
 	CMicrophone();
 	~CMicrophone();
 };

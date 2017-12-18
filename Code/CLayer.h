@@ -1,16 +1,21 @@
+/*
+
+*/
 #ifndef _CLAYER_H
 #define _CLAYER_H
 
+#define __LAYERS 	5
+
 class CLayer {
+	
 public:
 	CLayer();
 	~CLayer();
-	void setLayer(int*);
-	int* getLayer(void);
-
 protected:
+	void writeLayer();
+	void setLayer(int);
+private:
 	int layer[5];
-	void writeLayer(int);
 };
 
 #endif //_CLAYER_H

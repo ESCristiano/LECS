@@ -1,6 +1,3 @@
-#ifndef _CLIGHTSENSOR_H
-#define _CLIGHTSENSOR_H
-
 /*
 http://www.micromouseonline.com/2016/02/03/tim3-arr-regular-interrupts-stm32f4/
 
@@ -12,6 +9,9 @@ How use this module:
 	3 -> readLDR();
 	4 -> closeLDR();
 */
+
+#ifndef _CLIGHTSENSOR_H
+#define _CLIGHTSENSOR_H
 
 /*-------------Includes ---------------*/
 #include "freertos.h"
@@ -27,7 +27,7 @@ public:
 	uint16_t readLDR();
 	static CLightSensor* getInstance();
 private:
-	CTimer timer7;
+	CTimer timer7; //basic timer (timer 6 or timer 7)
 	uint16_t mvalueLdr; // temporária para testes
 	static CLightSensor* instance;
 	CLightSensor();

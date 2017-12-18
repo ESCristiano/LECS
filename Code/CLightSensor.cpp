@@ -11,7 +11,7 @@ CLightSensor::~CLightSensor()
 
 /*******************************************************************************
 * Function Name  : TIM7_IRQHandler
-* Description    : ISR
+* Description    : ISR timer 7
 * Input          : None (void)
 * Output         : None (void)
 * Return				 : None
