@@ -19,12 +19,13 @@
 
 int main()
 {
-	CLecs* Lecs = CLecs::getInstance();
+ 	CLecs* Lecs = CLecs::getInstance();
 	
 	Lecs->initNVIC();
 	Lecs->init3DLedMatrix();
 	//Lecs->initLecsSensors();
 	Lecs->initSemaphores();
+	Lecs->initMutexs();
 	Lecs->initQueue();
 	Lecs->run();
 

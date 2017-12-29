@@ -42,15 +42,15 @@ void CLayer::writeLayer()
 		layer 1 PC13 output	  12	GPIO		LS_1
 		layer 2 PE4	 output		13	GPIO		LS_2
 		layer 3 PE5	 output		14	GPIO		LS_3
-		layer 4 PE2	 output		15	GPIO		LS_4
+		layer 4 PE3	 output		15	GPIO		LS_4
 	
 	*/
 	
-	GPIO_WriteBit(GPIOE, GPIO_Pin_6, (BitAction) layer[0]);
-	GPIO_WriteBit(GPIOC, GPIO_Pin_13,(BitAction) layer[1]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_4, (BitAction) layer[2]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_5, (BitAction) layer[3]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_2, (BitAction) layer[4]);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction) layer[0]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_3,(BitAction) layer[1]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_6, (BitAction) layer[2]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_4, (BitAction) layer[3]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_5, (BitAction) layer[4]);
 
 
 }

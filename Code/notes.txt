@@ -1,5 +1,7 @@
 Information to speed up programming.
 
+Memory in stm32f407VGT is litle-endian
+
 Interrupts handlers names
 
                 DCD     WWDG_IRQHandler                   ; Window WatchDog                                        

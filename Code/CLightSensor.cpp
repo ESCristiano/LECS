@@ -49,7 +49,7 @@ void CLightSensor::initLightSensor()
 * Description    : Cleanup
 * Input          : None (void)
 * Output         : None (void)
-* Return	     : None
+* Return	    	 : None
 *******************************************************************************/
 void CLightSensor::closeLDR()
 {
@@ -104,14 +104,14 @@ void CLightSensor::initLDR()
 	uint32_t ADC_ExternalTrigConvEdge;      !< Select the external trigger edge and
 	enable the trigger of a regular group.
 	This parameter can be a value of
-	@ref ADC_external_trigger_edge_for_regular_channels_conversion
+	ADC_external_trigger_edge_for_regular_channels_conversion
 	uint32_t ADC_ExternalTrigConv;          !< Select the external event used to trigger
 	the start of conversion of a regular group.
 	This parameter can be a value of
-	@ref ADC_extrenal_trigger_sources_for_regular_channels_conversion
+	ADC_extrenal_trigger_sources_for_regular_channels_conversion
 	uint32_t ADC_DataAlign;                 !< Specifies whether the ADC data  alignment
 	is left or right. This parameter can be
-	a value of @ref ADC_data_align
+	a value of ADC_data_align
 	uint8_t  ADC_NbrOfConversion;           !< Specifies the number of ADC conversions
 	that will be done using the sequencer for
 	regular channel group.

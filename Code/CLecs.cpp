@@ -4,7 +4,9 @@
 #include "CTimer.h"
 #include "CSensors.h"
 #include "CBoardLeds.h"
+#include "CMicrophone.h"
 #include "CLightSensor.h"
+#include "C3DLedMatrix.h"
 #include "C3DLedMatrixBuffer.h"
 
 CLecs::CLecs()
@@ -59,7 +61,7 @@ void CLecs::init3DLedMatrix()
 		layer 1 PC13 output	  12	GPIO		LS_1
 		layer 2 PE4	 output		13	GPIO		LS_2
 		layer 3 PE5	 output		14	GPIO		LS_3
-		layer 4 PE2	 output		15	GPIO		LS_4
+		layer 4 PE3	 output		15	GPIO		LS_4
 	
 	*/
 	
@@ -79,7 +81,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_1;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_1.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6; 
+	GPIO_InitStruct_1.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6; 
 	GPIO_InitStruct_1.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_1.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_1.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -126,7 +128,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_2;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_2.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+	GPIO_InitStruct_2.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4;
 	GPIO_InitStruct_2.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_2.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_2.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -174,7 +176,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_6;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_6.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15; 
+	GPIO_InitStruct_6.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
 	GPIO_InitStruct_6.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_6.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_6.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -218,12 +220,14 @@ void CLecs::initSemaphores()
 	extern SemaphoreHandle_t Sem_ISR_3D;  				//When an interrupt occur this semaphore is released and the Update Matrix Task, leave your state of wait, and execute your function.
 	extern SemaphoreHandle_t Sem_ISR_ChangePattern; //When an interrupt occur this semaphore is released and the change pattern, leave your state of wait, and execute your function.
 	extern SemaphoreHandle_t Sem_ISR_Sleep;   		//when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
+	extern SemaphoreHandle_t Sem_ISR_ProcessData; //Send the read data from Microphone sensor to Process Data Task.
 	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
 
 	/*Binary Semaphore Creations*/
 	Sem_ISR_3D = xSemaphoreCreateBinary();
 	Sem_ISR_ChangePattern = xSemaphoreCreateBinary();
 	Sem_ISR_Sleep = xSemaphoreCreateBinary();
+	Sem_ISR_ProcessData = xSemaphoreCreateBinary();
 	Sem_DataMining_Sleep = xSemaphoreCreateBinary();
 }
 
@@ -238,7 +242,6 @@ void CLecs::initQueue()
 {
 	extern xQueueHandle Queue_ISR_CapSensor;						//Send the read data from capacitive sensors to Cap Sensor Task.
 	extern xQueueHandle Queue_ISR_LDR;      					 	//Send the read data from LDR sensor to LDR Task.
-	extern xQueueHandle Queue_DMA_ProcessData;   			 	//Send the read data from Microphone sensor to Process Data Task.
 	extern xQueueHandle Queue_SensorFusion_DataMining;	//Send the read data from capacitive sensors, LDR sensor and microphone sensor in one only structure of data that was fused.
 	extern xQueueHandle Queue_DataMining_Make;					//Send the pattern that we obtained with analysis the data to Make Graph Task.
 	
@@ -253,9 +256,25 @@ void CLecs::initQueue()
 	/*Queue creation with respective data types*/
 	Queue_ISR_CapSensor = xQueueCreate(4	, 4*sizeof( char ) );
 	Queue_ISR_LDR = xQueueCreate(4	,sizeof( uint16_t ) );
-	//Queue_DMA_ProcessData = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
+//	Queue_ISR_ProcessData = xQueueCreate(4	, 16*sizeof( uint16_t ) ); //__PCM_Output_Buffer_SIZE * sizeof( uint16_t )
 	//Queue_SensorFusion_DataMining = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
 	//Queue_DataMining_Make = xQueueCreate(4	,sizeof(  ) );	  ainda não sei o tamanho de cada elemento da message
+}
+
+/*******************************************************************************
+* Function Name  : initMutexs
+* Description    : Initialize all mutexs
+* Input          : None (void)
+* Output         : None (void)
+* Return			   : None
+*******************************************************************************/
+void CLecs::initMutexs()
+{
+	extern SemaphoreHandle_t mutex3DPattern;
+	extern SemaphoreHandle_t mutexSensors; 
+		
+	mutex3DPattern =  xSemaphoreCreateMutex();
+	mutexSensors = xSemaphoreCreateMutex();
 }
 
 /*******************************************************************************
@@ -269,9 +288,8 @@ void vLDRTask( void *pvParameters )
 {
 	char brightness;
 	extern xQueueHandle Queue_ISR_LDR;
+	extern SemaphoreHandle_t mutexSensors; 
 	uint16_t valueLdr;
-	SemaphoreHandle_t mutexSensors;
-	mutexSensors = xSemaphoreCreateMutex();
 	CLeds leds;
 	
 	for( ;; )
@@ -311,36 +329,244 @@ void vLDRTask( void *pvParameters )
 }
 
 /*******************************************************************************
+* Function Name  : vProcessDataTask
+* Description    : call function of the task Process Data Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vProcessDataTask(void *pvParameters )
+{
+	CMicrophone *micro = CMicrophone::getInstance();
+	micro->initMicrophone();
+//	for( ;; )
+//	{	
+	micro->readMicrophone(); 
+//	}
+	
+}
+
+/*******************************************************************************
+* Function Name  : vMakeGraphTask
+* Description    : call function of the task Make Graph Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+extern  uint16_t spectrum[64], spec[32];
+extern uint16_t maxValue;
+void vMakeGraphTask(void *pvParameters)
+{
+	
+//	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
+//	extern SemaphoreHandle_t mutex3DPattern;
+//	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+//	
+//	char*** _3Dmatrix;
+//	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+//	for (int i = 0; i < __LAYERS; ++i)
+//	{
+//		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+//		for (int j = 0; j < __ROWS; ++j)
+//		{
+//			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+//			
+//		}
+//	}
+//		
+//	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+//		
+//	/*maxvalue and vector will coming of the task data mining (microphone) */
+//		int effect = 2, maxvalue = 500, x, i, vector[32] = 
+//	{	0,	0,	0,	0,	0,
+//		0,	250,0,	345,0,
+//		0,	0,	500,0,	0,
+//		0,	48,	0,	0,	125,
+//		0,	0,	0,	0,	0 };
+//	
+//	char bit = 0;
+//		
+//	//for(;;)
+//		//{
+//		
+////	if(uxQueueMessagesWaiting(Queue_DataMining_Make))
+////		{ 
+////		//	leds.toggleBlue();
+////			xQueueReceive( Queue_DataMining_Make, maxvalue e vector num vector , 0 );
+//		
+//	/*********************ALGORITHM's for make patterns******************************/
+//	switch (effect)
+//	{
+//		case 1: //ascendant effect
+//			x = maxValue / 5;
+//	
+//			for (int index = 0, k = 0; index < 25; index++)
+//			{
+//				i = spectrum[index] / x;
+//				(spectrum[index] > 0) ? bit = 1 : bit = 0;
+//				(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+//				(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+//				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+//				(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+//				(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+//				if(++k > 4) k = 0;
+//			} 
+//			break;
+//		case 2: //descendant effect
+//			x = maxvalue / 5;
+//	
+//			for (int index = 0, k = 0; index < 25; index++)
+//			{
+//				i = vector[index] / x;
+//				(vector[index] > 0) ? bit = 1 : bit = 0;
+//				(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+//				(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+//				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+//				(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+//				(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+//				if(++k > 4) k = 0;
+//			}
+//			break;
+//	default:
+//		break;
+//	}
+//	
+//	/***********************************************************************************/
+//	
+//	/*Lock Mutex*/
+//	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
+//		{
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//			
+//			/*Unlock Mutex*/
+//			xSemaphoreGive( mutex3DPattern );
+//		}
+//		
+//		//} // Queue
+////	}
+}
+
+
+/*******************************************************************************
 * Function Name  : vUpdateMatrixTask
 * Description    : call function of the task Update Matrix Task
 * Input          : None 
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-void vUpdateMatrixTask()
+void vUpdateMatrixTask(void *pvParameters)
 {
 	extern SemaphoreHandle_t Sem_ISR_3D, Sem_ISR_ChangePattern;
+	extern SemaphoreHandle_t mutex3DPattern;
 	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
 	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
+		CLeds leds; ;
 	
-	if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
-        {
-					matrix3D = buffer->popFrame();
-        }
+	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
+	extern SemaphoreHandle_t mutex3DPattern;
+	
+	char*** _3Dmatrix;
+	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+	for (int i = 0; i < __LAYERS; ++i)
+	{
+		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+		for (int j = 0; j < __ROWS; ++j)
+		{
+			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+			
+		}
+	}
+		
+		
+	/*maxvalue and vector will coming of the task data mining (microphone) */
+		uint16_t effect = 1, maxvalue = 500, x, i, vector[32] = 
+	{	0,	0,	0,	0,	0,
+		0,	250,0,	345,0,
+		0,	0,	500,0,	0,
+		0,	48,	0,	0,	125,
+		0,	0,	0,	0,	0 };
+	
+	char bit = 0;
+		
+//	extern uint16_t sep[32];
+		
+	while(1)
+	{
+		vProcessDataTask((void *) 1);
+//		vMakeGraphTask((void *) 1);
+		switch (effect)
+	{
+		case 1: //ascendant effect
+			x = maxValue/ 5;
+	
+			for (int index = 0, k = 0; index < 25; index++)
+			{
+				i = spectrum[index] / x;
+				(spectrum[index] > 0) ? bit = 1 : bit = 0;
+				(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+				(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+				(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+				(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+				if(++k > 4) k = 0;
+			} 
+			break;
+		case 2: //descendant effect
+			x = maxValue/ 5;
+	
+			for (int index = 0, k = 0; index < 25; index++)
+			{
+				i = spectrum[index] / x;
+				(spectrum[index] > 0) ? bit = 1 : bit = 0;
+				(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+				(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+				(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+				(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+				if(++k > 4) k = 0;
+			}
+			break;
+	default:
+		break;
+	}
+		/*Lock Mutex*/
+	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
+		{
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+			
+			/*Unlock Mutex*/
+			xSemaphoreGive( mutex3DPattern );
+		}
+		for(int i = 0; i < 500; i++){
+		if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
+					{
+						/*Lock Mutex*/
+						if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
+						{
+							matrix3D = buffer->popFrame();
 
-	if( xSemaphoreTake( Sem_ISR_3D, 0 ) == pdTRUE ) // change layer (1ms)
-        {
-					matrix3D->write3DMatrix();
-        }
+							/*Unlock Mutex*/
+							xSemaphoreGive( mutex3DPattern );}
+					}
+
+		if( xSemaphoreTake( Sem_ISR_3D, 0 ) == pdTRUE ) // change layer (1ms)
+					{
+						matrix3D->write3DMatrix();
+					}
+				}
+	}
 }
 
-#include "C3DLedMatrix.h"
 
 
  //só para fins de testes
 void vTaskTest(void *pvParameters)
 {
-	CLeds leds; ;
+	CLeds leds; 
 	CSensors* Sensors = CSensors::getInstance();
 
 	
@@ -358,71 +584,89 @@ void vTaskTest(void *pvParameters)
 		}
 	}
 	
-int i = 0;		
+//int i = 0;		
 	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				for (int k = 0; k < 5; k++)
+				{
+					if(j == k)
+						_3Dmatrix[i][j][k] = 1;
+				}
+			}
+		}
+		matrix3D->set3DMatrix(_3Dmatrix);
+		buffer->pushFrame(matrix3D);
+		
 	for( ;; )
 	{	
-		i++; 
-		vUpdateMatrixTask();
+//		i++; 
+		vUpdateMatrixTask((void*)1);
 	//	buffer->pushFrame(matrix3D);
 	leds.toggleBlue();
-//			vTaskDelay(50 / portTICK_RATE_MS);
-		if(i == 50000) //1
-		{
-			_3Dmatrix[4][0][0] = 1; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 1; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 1; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 1;
-			
 		
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 100000)//2
-		{
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 1; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 1; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 1; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 1; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 150000)//3
-		{
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 1;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 1; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 1; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 1; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 200000)//4
-		{
-			i = 0;
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}
-					_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}
+	
+	}
+
+//		if(i == 50000) //1
+//		{
+//			_3Dmatrix[4][0][0] = 1; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 1; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 1; _3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 1;
+//			
+//		
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}else
+//		if(i == 100000)//2
+//		{
+//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 1; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 1; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 1; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 1; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}else
+//		if(i == 150000)//3
+//		{
+//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 1;
+//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 1; _3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
+//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 1; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[0][0][0] = 1; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+//			
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}else
+//		if(i == 200000)//4
+//		{
+//			i = 0;
+//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
+//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}
+//					_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
+//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
+//			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
+//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
+//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
+//			
+//			matrix3D->set3DMatrix(_3Dmatrix);
+//			buffer->pushFrame(matrix3D);
+//		}
 }
 
  //só para fins de testes
@@ -450,7 +694,8 @@ int CLecs::initTasks()
 	portBASE_TYPE task1_pass, task_test;
 	
 	/* Create Task */
-	task1_pass = xTaskCreate(vTaskTest, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	task1_pass = xTaskCreate(vUpdateMatrixTask, "microTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+//	task1_pass = xTaskCreate(vTaskTest, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 //  task_test = xTaskCreate(vTaskTest, "Task_test", configMINIMAL_STACK_SIZE, NULL, 1, NULL); //só para fins de testes
 //	xTaskCreate(vLEDTask2, "Task_Led2", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
 	
