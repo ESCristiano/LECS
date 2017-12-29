@@ -256,7 +256,6 @@ void CLecs::initQueue()
 	/*Queue creation with respective data types*/
 	Queue_ISR_CapSensor = xQueueCreate(4	, 4*sizeof( char ) );
 	Queue_ISR_LDR = xQueueCreate(4	,sizeof( uint16_t ) );
-//	Queue_ISR_ProcessData = xQueueCreate(4	, 16*sizeof( uint16_t ) ); //__PCM_Output_Buffer_SIZE * sizeof( uint16_t )
 	//Queue_SensorFusion_DataMining = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
 	//Queue_DataMining_Make = xQueueCreate(4	,sizeof(  ) );	  ainda não sei o tamanho de cada elemento da message
 }
@@ -490,49 +489,59 @@ void vUpdateMatrixTask(void *pvParameters)
 	
 	char bit = 0;
 		
-//	extern uint16_t sep[32];
+	extern SemaphoreHandle_t mutex3DPattern; //mutex 3D Pattern 
+
 		
 	while(1)
 	{
 		vProcessDataTask((void *) 1);
 //		vMakeGraphTask((void *) 1);
-		switch (effect)
-	{
-		case 1: //ascendant effect
-			x = maxValue/ 5;
-	
-			for (int index = 0, k = 0; index < 25; index++)
-			{
-				i = spectrum[index] / x;
-				(spectrum[index] > 0) ? bit = 1 : bit = 0;
-				(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-				(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-				(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-				(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-				if(++k > 4) k = 0;
-			} 
-			break;
-		case 2: //descendant effect
-			x = maxValue/ 5;
-	
-			for (int index = 0, k = 0; index < 25; index++)
-			{
-				i = spectrum[index] / x;
-				(spectrum[index] > 0) ? bit = 1 : bit = 0;
-				(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-				(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-				(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-				(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-				if(++k > 4) k = 0;
-			}
-			break;
-	default:
-		break;
-	}
+		
 		/*Lock Mutex*/
-	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
+		if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+			{
+				switch (effect)
+				{
+					case 1: //ascendant effect
+					
+					x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 25; index++)
+						{
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+							(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+							(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+							(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+							(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+							if(++k > 4) k = 0;
+						} 
+						break;
+					case 2: //descendant effect
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 25; index++)
+						{
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
+							(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
+							(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
+							(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
+							(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
+							if(++k > 4) k = 0;
+						}
+						break;
+					default:
+						break;
+					}
+					/*Unlock Mutex*/
+					xSemaphoreGive( mutex3DPattern );
+				}
+		
+		/*Lock Mutex*/
+	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
 		{
 			
 			matrix3D->set3DMatrix(_3Dmatrix);
@@ -541,11 +550,11 @@ void vUpdateMatrixTask(void *pvParameters)
 			/*Unlock Mutex*/
 			xSemaphoreGive( mutex3DPattern );
 		}
-		for(int i = 0; i < 500; i++){
+		
 		if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
 					{
 						/*Lock Mutex*/
-						if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
+						if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
 						{
 							matrix3D = buffer->popFrame();
 
@@ -557,7 +566,7 @@ void vUpdateMatrixTask(void *pvParameters)
 					{
 						matrix3D->write3DMatrix();
 					}
-				}
+				
 	}
 }
 

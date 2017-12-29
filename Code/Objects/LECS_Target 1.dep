@@ -1,6 +1,6 @@
 Dependencies for Project 'LECS', Target 'Target 1': (DO NOT MODIFY !)
 F (.\main.cpp)(0x5A447A2A)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
-I (main.h)(0x5A4655B3)
+I (main.h)(0x5A46567D)
 I (freertos.h)(0x5A37C9C5)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include\FreeRTOS.h)(0x598B2F5C)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x588BF3C4)
@@ -39,7 +39,7 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dac.h)(0x52B41D66)
 I (CLecs.h)(0x5A42D171)
 I (CLayer.h)(0x5A37C9C5)
-F (.\CLecs.cpp)(0x5A46517B)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\clecs.o --omf_browse .\objects\clecs.crf --depend .\objects\clecs.d)
+F (.\CLecs.cpp)(0x5A46642D)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\clecs.o --omf_browse .\objects\clecs.crf --depend .\objects\clecs.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x588BF3C4)
 I (CLecs.h)(0x5A42D171)
 I (freertos.h)(0x5A37C9C5)
@@ -82,7 +82,7 @@ I (CLayer.h)(0x5A37C9C5)
 I (CTimer.h)(0x5A37C9C5)
 I (CSensors.h)(0x5A37C9C5)
 I (CBoardLeds.h)(0x5A37C9C5)
-I (CMicrophone.h)(0x5A4637E4)
+I (CMicrophone.h)(0x5A466061)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include\arm_math.h)(0x59C1389E)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x588BF3C4)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include\arm_const_structs.h)(0x58AB0980)
@@ -95,7 +95,7 @@ I (CQueue.h)(0x5A37C9C5)
 F (.\CSensors.cpp)(0x5A42D28C)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\csensors.o --omf_browse .\objects\csensors.crf --depend .\objects\csensors.d)
 I (CSensors.h)(0x5A37C9C5)
 I (CCapSensors.h)(0x5A37C9C5)
-I (CMicrophone.h)(0x5A4637E4)
+I (CMicrophone.h)(0x5A466061)
 I (freertos.h)(0x5A37C9C5)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include\FreeRTOS.h)(0x598B2F5C)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x588BF3C4)
@@ -179,8 +179,8 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc.h)(0x52B41D66)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dac.h)(0x52B41D66)
 I (CTimer.h)(0x5A37C9C5)
-F (.\CMicrophone.cpp)(0x5A46566E)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\cmicrophone.o --omf_browse .\objects\cmicrophone.crf --depend .\objects\cmicrophone.d)
-I (CMicrophone.h)(0x5A4637E4)
+F (.\CMicrophone.cpp)(0x5A46642D)(--cpp -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections-I.\RTE\Device\STM32F407VG-I.\RTE\RTOS-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\CMSIS\RTOS2\FreeRTOS\Include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include-IC:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\portable\RVDS\ARM_CM4F-IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.1.1\CMSIS\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F40_41xxx-o .\objects\cmicrophone.o --omf_browse .\objects\cmicrophone.crf --depend .\objects\cmicrophone.d)
+I (CMicrophone.h)(0x5A466061)
 I (freertos.h)(0x5A37C9C5)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS-FreeRTOS\9.1.0\Source\include\FreeRTOS.h)(0x598B2F5C)
 I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x588BF3C4)
@@ -385,13 +385,13 @@ F (.\CLecs.h)(0x5A42D171)()
 F (.\CSensors.h)(0x5A37C9C5)()
 F (.\CCapSensors.h)(0x5A37C9C5)()
 F (.\CLightSensor.h)(0x5A37C9C5)()
-F (.\CMicrophone.h)(0x5A4637E4)()
+F (.\CMicrophone.h)(0x5A466061)()
 F (.\CTimer.h)(0x5A37C9C5)()
 F (.\C2DLedMatrix.h)(0x5A37C9C5)()
 F (.\C3DLedMatrix.h)(0x5A37C9C5)()
 F (.\C3DLedMatrixBuffer.h)(0x5A37C9C5)()
 F (.\CLayer.h)(0x5A37C9C5)()
-F (.\main.h)(0x5A4655B3)()
+F (.\main.h)(0x5A46567D)()
 F (.\freertos.h)(0x5A37C9C5)()
 F (.\CQueue.h)(0x5A37C9C5)()
 F (.\Abstract.txt)(0x5A37C87D)()

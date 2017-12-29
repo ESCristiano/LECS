@@ -50,52 +50,6 @@ PDMFilter_InitStruct Filter;
 arm_rfft_fast_instance_f32 S;
 
 
-/* Private function prototypes -----------------------------------------------*/
-//static void GPIO_Init(void);
-//static void SPI_Init(uint32_t Freq);
-//static void NVIC_Init(void);
-//uint32_t WaveRecorderInit(uint32_t AudioFreq, uint32_t BitRes, uint32_t ChnlNbr);
-
-
-/*******************************************************************************
-* Function Name  : 
-* Description    : This function handles AUDIO_REC_SPI global interrupt request.
-* Input          : None (void)
-* Output         : None (void)
-* Return				 : None (void)
-*******************************************************************************/
-extern "C" void SPI2_IRQHandler(void)
-{  
-  u16 volume; u16 app;
-	extern SemaphoreHandle_t Sem_ISR_ProcessData; 	//Send the read data from Microphone sensor to Process Data Task.
-	BaseType_t xHigherPriorityTaskWoken;
-	/* We have not woken a task at the start of the ISR. */
-	xHigherPriorityTaskWoken = pdFALSE;
-	
-	static int i = 0;
-	if(i++ == 5000){
-	GPIO_ToggleBits(GPIOD, GPIO_Pin_13); i = 0;}
-	
-	
-  /* Check if data are available in SPI Data register */
-  if (SPI_GetITStatus(SPI2, SPI_I2S_IT_RXNE) != RESET)
-  {
-    app = SPI_I2S_ReceiveData(SPI2);
-    PDM_Input_Buffer[InternalBufferSize++] = (HTONS(app));
-    
-    /* Check to prevent overflow condition */
-    if (InternalBufferSize >= __PDM_Input_Buffer_SIZE)
-    {
-      InternalBufferSize = 0;
-     
-      volume = 50;
-      
-      PDM_Filter_64_LSB((uint8_t *)PDM_Input_Buffer, (uint16_t *)AudioRecBuf, volume , (PDMFilter_InitStruct *)&Filter);
- 			xSemaphoreGiveFromISR( Sem_ISR_ProcessData, &xHigherPriorityTaskWoken );
-    }
-  }
-}
-
 CMicrophone::CMicrophone()
 {
 }
@@ -131,6 +85,45 @@ CMicrophone * CMicrophone::getInstance()
 	//mutex unclock 
 	return instance;
 }
+
+/*******************************************************************************
+* Function Name  : 
+* Description    : This function handles AUDIO_REC_SPI global interrupt request.
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None (void)
+*******************************************************************************/
+extern "C" void SPI2_IRQHandler(void)
+{  
+  u16 volume; u16 app;
+	extern SemaphoreHandle_t Sem_ISR_ProcessData; 	//Send the read data from Microphone sensor to Process Data Task.
+	BaseType_t xHigherPriorityTaskWoken;
+	/* We have not woken a task at the start of the ISR. */
+	xHigherPriorityTaskWoken = pdFALSE;
+	
+	static int i = 0;
+	if(i++ == 5000){
+	GPIO_ToggleBits(GPIOD, GPIO_Pin_13); i = 0;}
+	
+  /* Check if data are available in SPI Data register */
+  if (SPI_GetITStatus(SPI2, SPI_I2S_IT_RXNE) != RESET)
+  {
+    app = SPI_I2S_ReceiveData(SPI2);
+    PDM_Input_Buffer[InternalBufferSize++] = (HTONS(app));
+    
+    /* Check to prevent overflow condition */
+    if (InternalBufferSize >= __PDM_Input_Buffer_SIZE)
+    {
+      InternalBufferSize = 0;
+     
+      volume = 50;
+      
+      PDM_Filter_64_LSB((uint8_t *)PDM_Input_Buffer, (uint16_t *)AudioRecBuf, volume , (PDMFilter_InitStruct *)&Filter);
+ 			xSemaphoreGiveFromISR( Sem_ISR_ProcessData, &xHigherPriorityTaskWoken );
+    }
+  }
+}
+
 
 /*******************************************************************************
 * Function Name  : GPIOInit
@@ -379,7 +372,8 @@ void CMicrophone::waveRecorderUpdate(void)
   /* Start the record */
 	static int i = 0;
 	extern SemaphoreHandle_t Sem_ISR_ProcessData; 	//Send the read data from Microphone sensor to Process Data Task.
-
+	extern SemaphoreHandle_t mutex3DPattern; //mutex 3D Pattern 
+	
 	if(!i)
   waveRecorderStart(PCM_Output_Buffer, __PCM_Output_Buffer_SIZE); i=1;
 	
@@ -404,29 +398,41 @@ void CMicrophone::waveRecorderUpdate(void)
 			{
 				if (buf_idx< __Buffer_Input_SIZE)
 				{
-					/* Store Data in RAM buffer */
+					/* Store Data in buffer_input buffer */
 					buffer_input[buf_idx++]= *(WriteBuf + counter);
 					if (buf_idx1 == __Buffer_Input_SIZE)
 					{
 						buf_idx1 = 0;
-						/*FFT second half of the buffer*/			
-						arm_rfft_fast_f32(&S,(float32_t*)buffer_input1, (float32_t*)spectrum, 0);  //do the fft of the signal recorded by the micro
-						arm_cmplx_mag_f32((float32_t*)spectrum, (float32_t*)spectrum, __FFT_SIZE); //calcule the magnitude of each freq
-						maxValue = maxArray(spectrum, __FFT_SIZE);//Calcule the max of the spectrum
+						/*Lock Mutex*/
+						if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+							{
+								/*FFT second half of the buffer*/
+								arm_rfft_fast_f32(&S,(float32_t*)buffer_input1, (float32_t*)spectrum, 0);  //do the fft of the signal recorded by the micro
+								arm_cmplx_mag_f32((float32_t*)spectrum, (float32_t*)spectrum, __FFT_SIZE); //calcule the magnitude of each freq
+								maxValue = maxArray(spectrum, __FFT_SIZE);//Calcule the max of the spectrum
+								/*Unlock Mutex*/
+								xSemaphoreGive( mutex3DPattern );
+							}
 					}
 				}
 				else 
 					if (buf_idx1< __Buffer_Input_SIZE)
 					{
 						static int fftDone = 1;
-						/* Store Data in RAM buffer */
+						/* Store Data in buffer_input1 buffer */
 						buffer_input1[buf_idx1++]= *(WriteBuf + counter);
 						if ((buf_idx == __Buffer_Input_SIZE) && fftDone)
 						{
-							/*FFT first half of the buffer*/
-							arm_rfft_fast_f32(&S,(float32_t*)buffer_input,(float32_t*)spectrum, 0);//do the fft of the signal recorded by the micro
-							arm_cmplx_mag_f32((float32_t*)spectrum, (float32_t*)spectrum, __FFT_SIZE); //calcule the magnitude of each freq
-							maxValue = maxArray(spectrum, __FFT_SIZE); //Calcule the max of the spectrum
+							/*Lock Mutex*/
+							if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+								{
+									/*FFT first half of the buffer*/
+									arm_rfft_fast_f32(&S,(float32_t*)buffer_input,(float32_t*)spectrum, 0);//do the fft of the signal recorded by the micro
+									arm_cmplx_mag_f32((float32_t*)spectrum, (float32_t*)spectrum, __FFT_SIZE); //calcule the magnitude of each freq
+									maxValue = maxArray(spectrum, __FFT_SIZE); //Calcule the max of the spectrum
+									/*Unlock Mutex*/
+									xSemaphoreGive( mutex3DPattern );
+								}
 							fftDone = 0; //indicate that FFT already was done
 						}
 						if (buf_idx1 == __Buffer_Input_SIZE)

@@ -7,6 +7,7 @@
 #include "arm_math.h"
 #include "arm_const_structs.h"
 
+
 class CMicrophone {
 public:
 	void initMicrophone();
@@ -25,6 +26,7 @@ private:
 	uint32_t waveRecorderStop(void);
 	uint16_t maxArray(uint16_t a[], uint16_t num_elements);
 	void waveRecorderUpdate(void);
+
 	CMicrophone();
 	~CMicrophone();
 };
