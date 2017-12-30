@@ -120,6 +120,7 @@ extern "C" void SPI2_IRQHandler(void)
       
       PDM_Filter_64_LSB((uint8_t *)PDM_Input_Buffer, (uint16_t *)AudioRecBuf, volume , (PDMFilter_InitStruct *)&Filter);
  			xSemaphoreGiveFromISR( Sem_ISR_ProcessData, &xHigherPriorityTaskWoken );
+			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
   }
 }

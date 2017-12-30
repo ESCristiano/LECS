@@ -67,10 +67,12 @@ extern "C" void TIM6_DAC_IRQHandler(void)
 	if(count++ == 32) //30 frames por second (32ms in 32 ms change frame)
 	{
 		xSemaphoreGiveFromISR( Sem_ISR_ChangePattern, &xHigherPriorityTaskWoken );
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 		count = 0;
 	}
 	/* Unblock the task by releasing the semaphore. */
 	xSemaphoreGiveFromISR( Sem_ISR_3D, &xHigherPriorityTaskWoken );
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	TIM_ClearITPendingBit (TIM6, TIM_IT_Update); 
   }
 	

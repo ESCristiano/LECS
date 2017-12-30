@@ -338,11 +338,11 @@ void vProcessDataTask(void *pvParameters )
 {
 	CMicrophone *micro = CMicrophone::getInstance();
 	micro->initMicrophone();
-//	for( ;; )
-//	{	
+	for( ;; )
+	{	
 	micro->readMicrophone(); 
-//	}
-	
+			vTaskDelay(1); //context switch
+	}
 }
 
 /*******************************************************************************
@@ -352,99 +352,117 @@ void vProcessDataTask(void *pvParameters )
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-extern  uint16_t spectrum[64], spec[32];
+extern  uint16_t spectrum[64];
 extern uint16_t maxValue;
 void vMakeGraphTask(void *pvParameters)
 {
+	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
+	extern SemaphoreHandle_t mutex3DPattern;  //mutex 3D Pattern 
 	
-//	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
-//	extern SemaphoreHandle_t mutex3DPattern;
-//	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
-//	
-//	char*** _3Dmatrix;
-//	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
-//	for (int i = 0; i < __LAYERS; ++i)
-//	{
-//		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
-//		for (int j = 0; j < __ROWS; ++j)
-//		{
-//			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
-//			
-//		}
-//	}
-//		
-//	C3DLedMatrix* matrix3D = new C3DLedMatrix;
-//		
-//	/*maxvalue and vector will coming of the task data mining (microphone) */
-//		int effect = 2, maxvalue = 500, x, i, vector[32] = 
-//	{	0,	0,	0,	0,	0,
-//		0,	250,0,	345,0,
-//		0,	0,	500,0,	0,
-//		0,	48,	0,	0,	125,
-//		0,	0,	0,	0,	0 };
-//	
-//	char bit = 0;
-//		
-//	//for(;;)
-//		//{
-//		
-////	if(uxQueueMessagesWaiting(Queue_DataMining_Make))
-////		{ 
-////		//	leds.toggleBlue();
-////			xQueueReceive( Queue_DataMining_Make, maxvalue e vector num vector , 0 );
-//		
-//	/*********************ALGORITHM's for make patterns******************************/
-//	switch (effect)
-//	{
-//		case 1: //ascendant effect
-//			x = maxValue / 5;
-//	
-//			for (int index = 0, k = 0; index < 25; index++)
-//			{
-//				i = spectrum[index] / x;
-//				(spectrum[index] > 0) ? bit = 1 : bit = 0;
-//				(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-//				(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-//				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-//				(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-//				(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-//				if(++k > 4) k = 0;
-//			} 
-//			break;
-//		case 2: //descendant effect
-//			x = maxvalue / 5;
-//	
-//			for (int index = 0, k = 0; index < 25; index++)
-//			{
-//				i = vector[index] / x;
-//				(vector[index] > 0) ? bit = 1 : bit = 0;
-//				(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-//				(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-//				(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-//				(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-//				(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-//				if(++k > 4) k = 0;
-//			}
-//			break;
-//	default:
-//		break;
-//	}
-//	
-//	/***********************************************************************************/
-//	
-//	/*Lock Mutex*/
-//	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 10 ) == pdTRUE )
-//		{
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//			
-//			/*Unlock Mutex*/
-//			xSemaphoreGive( mutex3DPattern );
+	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	
+	char*** _3Dmatrix;
+	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+	for (int i = 0; i < __LAYERS; ++i)
+	{
+		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+		for (int j = 0; j < __ROWS; ++j)
+		{
+			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+			
+		}
+	}
+		
+	char bit = 0;
+	
+	/*effect will coming of the task data mining (microphone) */
+	uint16_t effect = 3, x, i;
+				
+	for(;;)
+	{
+//		if(uxQueueMessagesWaiting(Queue_DataMining_Make))
+//		{ 
+//			xQueueReceive( Queue_DataMining_Make, maxvalue e vector num vector , 0 );
 //		}
 //		
-//		//} // Queue
-////	}
+	/*********************ALGORITHM's for make patterns*************************************************/
+		
+		/*Lock Mutex*/
+		if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+			{
+				switch (effect)
+				{
+					case 1: //ascendant effect
+					
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[0][index / 10][k] = bit : _3Dmatrix[0][index / 10][k] = 0;
+							(i >= 1) ? _3Dmatrix[1][index / 10][k] = bit : _3Dmatrix[1][index / 10][k] = 0;
+							(i >= 2) ? _3Dmatrix[2][index / 10][k] = bit : _3Dmatrix[2][index / 10][k] = 0;
+							(i >= 3) ? _3Dmatrix[3][index / 10][k] = bit : _3Dmatrix[3][index / 10][k] = 0;
+							(i >= 4) ? _3Dmatrix[4][index / 10][k] = bit : _3Dmatrix[4][index / 10][k] = 0;
+							if(++k > 4) k = 0;
+						} 
+						break;
+					case 2: // X effect
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 0) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 1) ? _3Dmatrix[k][index / 10][k]			= bit : _3Dmatrix[k][index / 10][k]		 	= 0;
+							(i >= 1) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 2) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 2) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 3) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 3) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 4) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k]				= 0;
+							(i >= 4) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							if(++k > 4) k = 0;
+						}
+					case 3: // ladder effect
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							((i >= 0)&&((index / 10)>=0)) ? _3Dmatrix[0][4 - index / 10][k] = bit : _3Dmatrix[0][4 - index / 10][k] = 0;
+							((i >= 1)&&((index / 10)>=1)) ? _3Dmatrix[1][4 - index / 10][k] = bit : _3Dmatrix[1][4 - index / 10][k] = 0;
+							((i >= 2)&&((index / 10)>=2)) ? _3Dmatrix[2][4 - index / 10][k] = bit : _3Dmatrix[2][4 - index / 10][k] = 0;
+							((i >= 3)&&((index / 10)>=3)) ? _3Dmatrix[3][4 - index / 10][k] = bit : _3Dmatrix[3][4 - index / 10][k] = 0;
+							((i >= 4)&&((index / 10)>=4)) ? _3Dmatrix[4][4 - index / 10][k] = bit : _3Dmatrix[4][4 - index / 10][k] = 0;
+							if(++k > 4) k = 0;
+						} 
+						break;
+					default:
+						break;
+					}
+					/*Unlock Mutex*/
+					xSemaphoreGive( mutex3DPattern );
+				}
+	/************************************************************************************************************************************/
+		
+		/*Lock Mutex*/
+	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+		{
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+			
+			/*Unlock Mutex*/
+			xSemaphoreGive( mutex3DPattern );
+		}
+			vTaskDelay(1); //context switch
+	}
 }
 
 
@@ -461,96 +479,9 @@ void vUpdateMatrixTask(void *pvParameters)
 	extern SemaphoreHandle_t mutex3DPattern;
 	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
 	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
-		CLeds leds; ;
-	
-	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
-	extern SemaphoreHandle_t mutex3DPattern;
-	
-	char*** _3Dmatrix;
-	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
-	for (int i = 0; i < __LAYERS; ++i)
-	{
-		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
-		for (int j = 0; j < __ROWS; ++j)
-		{
-			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
-			
-		}
-	}
-		
-		
-	/*maxvalue and vector will coming of the task data mining (microphone) */
-		uint16_t effect = 1, maxvalue = 500, x, i, vector[32] = 
-	{	0,	0,	0,	0,	0,
-		0,	250,0,	345,0,
-		0,	0,	500,0,	0,
-		0,	48,	0,	0,	125,
-		0,	0,	0,	0,	0 };
-	
-	char bit = 0;
-		
-	extern SemaphoreHandle_t mutex3DPattern; //mutex 3D Pattern 
-
 		
 	while(1)
 	{
-		vProcessDataTask((void *) 1);
-//		vMakeGraphTask((void *) 1);
-		
-		/*Lock Mutex*/
-		if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
-			{
-				switch (effect)
-				{
-					case 1: //ascendant effect
-					
-					x = maxValue/ 5;
-				
-						for (int index = 0, k = 0; index < 25; index++)
-						{
-							i = spectrum[index] / x;
-							(spectrum[index] > 0) ? bit = 1 : bit = 0;
-							(i >= 0) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-							(i >= 1) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-							(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-							(i >= 3) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-							(i >= 4) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-							if(++k > 4) k = 0;
-						} 
-						break;
-					case 2: //descendant effect
-						x = maxValue/ 5;
-				
-						for (int index = 0, k = 0; index < 25; index++)
-						{
-							i = spectrum[index] / x;
-							(spectrum[index] > 0) ? bit = 1 : bit = 0;
-							(i >= 0) ? _3Dmatrix[4][index / 5][k] = bit : _3Dmatrix[4][index / 5][k] = 0;
-							(i >= 1) ? _3Dmatrix[3][index / 5][k] = bit : _3Dmatrix[3][index / 5][k] = 0;
-							(i >= 2) ? _3Dmatrix[2][index / 5][k] = bit : _3Dmatrix[2][index / 5][k] = 0;
-							(i >= 3) ? _3Dmatrix[1][index / 5][k] = bit : _3Dmatrix[1][index / 5][k] = 0;
-							(i >= 4) ? _3Dmatrix[0][index / 5][k] = bit : _3Dmatrix[0][index / 5][k] = 0;
-							if(++k > 4) k = 0;
-						}
-						break;
-					default:
-						break;
-					}
-					/*Unlock Mutex*/
-					xSemaphoreGive( mutex3DPattern );
-				}
-		
-		/*Lock Mutex*/
-	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
-		{
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-			
-			/*Unlock Mutex*/
-			xSemaphoreGive( mutex3DPattern );
-		}
-		
 		if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
 					{
 						/*Lock Mutex*/
@@ -566,7 +497,7 @@ void vUpdateMatrixTask(void *pvParameters)
 					{
 						matrix3D->write3DMatrix();
 					}
-				
+//		vTaskDelay(1);
 	}
 }
 
@@ -700,24 +631,28 @@ void vLEDTask2( void *pvParameters )
 *******************************************************************************/
 int CLecs::initTasks()
 {
-	portBASE_TYPE task1_pass, task_test;
+	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask;
 	
 	/* Create Task */
-	task1_pass = xTaskCreate(vUpdateMatrixTask, "microTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-//	task1_pass = xTaskCreate(vTaskTest, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	/*Low priority numbers denote low priority tasks. The idle task has priority zero (tskIDLE_PRIORITY).*/
+	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	
 //  task_test = xTaskCreate(vTaskTest, "Task_test", configMINIMAL_STACK_SIZE, NULL, 1, NULL); //só para fins de testes
 //	xTaskCreate(vLEDTask2, "Task_Led2", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
 	
-	if ((task1_pass == pdPASS))
-	{
-		/* Everything went well*/
-		return 0;
-	}
-	else
-	{
-		/* ERROR! Creating the Tasks */
-		return -2;
-	}
+//	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS))
+//	{
+//		/* Everything went well*/
+//		return 0;
+//	}
+//	else
+//	{
+//		/* ERROR! Creating the Tasks */
+//		return -2;
+//	}
+return 0;
 }
 
 /*******************************************************************************
