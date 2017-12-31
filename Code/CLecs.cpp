@@ -289,14 +289,11 @@ void vLDRTask( void *pvParameters )
 	extern xQueueHandle Queue_ISR_LDR;
 	extern SemaphoreHandle_t mutexSensors; 
 	uint16_t valueLdr;
-	CLeds leds;
-	
+
 	for( ;; )
-	{
-		
+	{		
 		if(uxQueueMessagesWaiting(Queue_ISR_LDR))
 		{ 
-		//	leds.toggleBlue();
 			xQueueReceive( Queue_ISR_LDR, &valueLdr, 0 );
 			/*
 				The brightness scale is split in 8.
@@ -322,7 +319,7 @@ void vLDRTask( void *pvParameters )
           Sensors->setDataLdr(brightness);  
 					/*Unlock Mutex*/
 					xSemaphoreGive( mutexSensors );
-        }
+        }				
 		}
 	}
 }
@@ -341,7 +338,7 @@ void vProcessDataTask(void *pvParameters )
 	for( ;; )
 	{	
 	micro->readMicrophone(); 
-			vTaskDelay(1); //context switch
+	vTaskDelay(1); //context switch
 	}
 }
 
@@ -352,12 +349,12 @@ void vProcessDataTask(void *pvParameters )
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-extern  uint16_t spectrum[64];
-extern uint16_t maxValue;
 void vMakeGraphTask(void *pvParameters)
 {
 	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
 	extern SemaphoreHandle_t mutex3DPattern;  //mutex 3D Pattern 
+	extern  uint16_t spectrum[64];
+	extern uint16_t maxValue;
 	
 	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
 	C3DLedMatrix* matrix3D = new C3DLedMatrix;
@@ -377,7 +374,7 @@ void vMakeGraphTask(void *pvParameters)
 	char bit = 0;
 	
 	/*effect will coming of the task data mining (microphone) */
-	uint16_t effect = 3, x, i;
+	uint16_t effect = 2, x, i;
 				
 	for(;;)
 	{
@@ -428,6 +425,7 @@ void vMakeGraphTask(void *pvParameters)
 							(i >= 4) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
 							if(++k > 4) k = 0;
 						}
+						break;
 					case 3: // ladder effect
 						x = maxValue/ 5;
 				
@@ -480,7 +478,7 @@ void vUpdateMatrixTask(void *pvParameters)
 	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
 	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
 		
-	while(1)
+	for(;;)
 	{
 		if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
 					{
@@ -497,130 +495,80 @@ void vUpdateMatrixTask(void *pvParameters)
 					{
 						matrix3D->write3DMatrix();
 					}
-//		vTaskDelay(1);
+		vTaskDelay(1); //context switch
 	}
 }
 
 
 
- //só para fins de testes
-void vTaskTest(void *pvParameters)
-{
-	CLeds leds; 
-	CSensors* Sensors = CSensors::getInstance();
 
+
+
+
+/*******************************************************************************
+* Function Name  : vDataMiningTask
+* Description    : call function of the task Data Mining
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vDataMiningTask(void *pvParameters )
+{
 	
-	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
-	
-	char*** _3Dmatrix;
-	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
-	for (int i = 0; i < __LAYERS; ++i)
-	{
-		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
-		for (int j = 0; j < __ROWS; ++j)
-		{
-			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
-			
-		}
-	}
-	
-//int i = 0;		
-	C3DLedMatrix* matrix3D = new C3DLedMatrix;
-	
-		for (int i = 0; i < 5; i++)
-		{
-			for (int j = 0; j < 5; j++)
-			{
-				for (int k = 0; k < 5; k++)
-				{
-					if(j == k)
-						_3Dmatrix[i][j][k] = 1;
-				}
-			}
-		}
-		matrix3D->set3DMatrix(_3Dmatrix);
-		buffer->pushFrame(matrix3D);
-		
 	for( ;; )
 	{	
-//		i++; 
-		vUpdateMatrixTask((void*)1);
-	//	buffer->pushFrame(matrix3D);
-	leds.toggleBlue();
-		
-	
+
+	vTaskDelay(1); //context switch
 	}
-
-//		if(i == 50000) //1
-//		{
-//			_3Dmatrix[4][0][0] = 1; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 1; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 1; _3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 1;
-//			
-//		
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}else
-//		if(i == 100000)//2
-//		{
-//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 1; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 1; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 1; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 1; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}else
-//		if(i == 150000)//3
-//		{
-//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 1;
-//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 1; _3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 1; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[0][0][0] = 1; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-//			
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}else
-//		if(i == 200000)//4
-//		{
-//			i = 0;
-//			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}
-//					_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-//			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-//			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-//			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-//			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-//			
-//			matrix3D->set3DMatrix(_3Dmatrix);
-//			buffer->pushFrame(matrix3D);
-//		}
 }
-
- //só para fins de testes
-void vLEDTask2( void *pvParameters )
+/*******************************************************************************
+* Function Name  : vSensorFusionTask
+* Description    : call function of the task Sensor Fusion
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vSensorFusionTask(void *pvParameters )
 {
 	
-	CLeds leds;
-	leds.setGreen();
-	leds.setBlue();
 	for( ;; )
-	{
-		leds.setGreen();
+	{	
+
+	vTaskDelay(1); //context switch
 	}
 }
+/*******************************************************************************
+* Function Name  : vCapSensorTask
+* Description    : call function of the task Capacitive Sensors
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vCapSensorTask(void *pvParameters )
+{
+
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+/*******************************************************************************
+* Function Name  : vSleepTask
+* Description    : call function of the task Sleep Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vSleepTask(void *pvParameters )
+{
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+
 /*******************************************************************************
 * Function Name  : initTasks()
 * Description    : Create Tasks and Assign Tasks Priorities
@@ -631,18 +579,20 @@ void vLEDTask2( void *pvParameters )
 *******************************************************************************/
 int CLecs::initTasks()
 {
-	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask;
+	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask, LDRTask, sleepTask, capSensorTask, sensorFusionTask, dataMiningTask ;
 	
 	/* Create Task */
 	/*Low priority numbers denote low priority tasks. The idle task has priority zero (tskIDLE_PRIORITY).*/
-	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	
-//  task_test = xTaskCreate(vTaskTest, "Task_test", configMINIMAL_STACK_SIZE, NULL, 1, NULL); //só para fins de testes
-//	xTaskCreate(vLEDTask2, "Task_Led2", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-	
-//	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS))
+	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL); // priority higher than 4 don't work
+	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
+	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
+//	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+//	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+//	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+//	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+
+//	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS)&&(LDRTask == pdPASS)&&(sleepTask == pdPASS)&&(capSensorTask == pdPASS)&&(sensorFusionTask == pdPASS)&&(dataMiningTask == pdPASS))
 //	{
 //		/* Everything went well*/
 //		return 0;
@@ -677,6 +627,7 @@ int CLecs::run()
 	}
 }
 
+
 CLecs* CLecs::instance = 0;
 
 CLecs * CLecs::getInstance()
@@ -704,6 +655,10 @@ void *operator new(size_t size)
    return p;
 }
 
+/*
+	Overload of opeartor new and delete because they use malloc and free
+that aren not thread safe
+*/
 void operator delete(void *p)
 {
    if(uxTaskGetNumberOfTasks())

@@ -29,6 +29,7 @@ extern "C" void TIM7_IRQHandler(void)
 	if (TIM_GetITStatus (TIM7, TIM_IT_Update) != RESET) {
     value = ldr->readLDR(); 
 		xQueueSendFromISR(Queue_ISR_LDR, &value, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     TIM_ClearITPendingBit (TIM7, TIM_IT_Update); 
   }
 }
@@ -62,7 +63,7 @@ void CLightSensor::closeLDR()
 * Description    : Initialization of the adc for read LDR
 * Input          : None (void)
 * Output         : uint16_t
-* Return		 : Value between 0 and 255 that represent the value of LDR
+* Return				 : Value between 0 and 255 that represent the value of LDR
 *******************************************************************************/
 uint16_t CLightSensor::readLDR()
 {
@@ -123,7 +124,7 @@ void CLightSensor::initLDR()
 	/*ADC pins configuration*/
 	GPIO_InitTypeDef GPIO_InitStruct;		// GPIO structure declaration
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); // Enabling GPIO peripheral clock
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN; // Analog mode
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL; // pullup/pulldown resistors inactive
 	GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -131,7 +132,7 @@ void CLightSensor::initLDR()
 	ADC_InitTypeDef ADC_init_structure; //Structure for adc confguration
 	ADC_DeInit();
 	ADC_init_structure.ADC_DataAlign = ADC_DataAlign_Right;//data converted will be shifted to right
-	ADC_init_structure.ADC_Resolution = ADC_Resolution_8b;//Input voltage is converted into a 8bit number giving a maximum value of 4096
+	ADC_init_structure.ADC_Resolution = ADC_Resolution_8b;//Input voltage is converted into a 8bit number giving a maximum value of 256
 	ADC_init_structure.ADC_ContinuousConvMode = DISABLE; //the conversion is single mode, the input data is converted once
 	ADC_init_structure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;//no trigger for conversion
 	ADC_init_structure.ADC_NbrOfConversion = 1; //number of ADC conversions
@@ -140,5 +141,5 @@ void CLightSensor::initLDR()
 										//Enable ADC conversion
 	ADC_Cmd(ADC1, ENABLE);
 	//Select the channel to be read from
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_144Cycles);
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_144Cycles);
 }
