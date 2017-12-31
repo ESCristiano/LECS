@@ -72,16 +72,14 @@ CSensors* CSensors::instance = 0;
 
 CSensors * CSensors::getInstance()
 {
-		SemaphoreHandle_t mutexSensors;
-	mutexSensors = xSemaphoreCreateMutex();
-	
+//		extern SemaphoreHandle_t mutexSensors;
 	
 		/*Lock Mutex*/
-			if( xSemaphoreTake( mutexSensors, ( TickType_t ) 10 ) == pdTRUE )
-        {
-          	if (instance == 0)
-		instance = new CSensors;
-        }
+//			if( xSemaphoreTake( mutexSensors, ( TickType_t ) 10 ) == pdTRUE )
+//        {
+    if (instance == 0)
+			instance = new CSensors;
+//        }
 	//mutex lock //Thread Safe Singleton, avoid race condition during the initialization of the static Singleton
 
 	//mutex unclock 

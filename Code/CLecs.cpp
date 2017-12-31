@@ -4,7 +4,9 @@
 #include "CTimer.h"
 #include "CSensors.h"
 #include "CBoardLeds.h"
+#include "CMicrophone.h"
 #include "CLightSensor.h"
+#include "C3DLedMatrix.h"
 #include "C3DLedMatrixBuffer.h"
 
 CLecs::CLecs()
@@ -59,7 +61,7 @@ void CLecs::init3DLedMatrix()
 		layer 1 PC13 output	  12	GPIO		LS_1
 		layer 2 PE4	 output		13	GPIO		LS_2
 		layer 3 PE5	 output		14	GPIO		LS_3
-		layer 4 PE2	 output		15	GPIO		LS_4
+		layer 4 PE3	 output		15	GPIO		LS_4
 	
 	*/
 	
@@ -79,7 +81,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_1;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_1.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6; 
+	GPIO_InitStruct_1.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6; 
 	GPIO_InitStruct_1.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_1.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_1.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -126,7 +128,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_2;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_2.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+	GPIO_InitStruct_2.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4;
 	GPIO_InitStruct_2.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_2.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_2.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -174,7 +176,7 @@ void CLecs::init3DLedMatrix()
 	// GPIO structure declaration
 	GPIO_InitTypeDef GPIO_InitStruct_6;
 	// GPIO peripheral properties specification
-	GPIO_InitStruct_6.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15; 
+	GPIO_InitStruct_6.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
 	GPIO_InitStruct_6.GPIO_Mode = GPIO_Mode_OUT; // output
 	GPIO_InitStruct_6.GPIO_Speed = GPIO_Speed_50MHz; // clock speed
 	GPIO_InitStruct_6.GPIO_OType = GPIO_OType_PP; // push/pull 
@@ -218,12 +220,14 @@ void CLecs::initSemaphores()
 	extern SemaphoreHandle_t Sem_ISR_3D;  				//When an interrupt occur this semaphore is released and the Update Matrix Task, leave your state of wait, and execute your function.
 	extern SemaphoreHandle_t Sem_ISR_ChangePattern; //When an interrupt occur this semaphore is released and the change pattern, leave your state of wait, and execute your function.
 	extern SemaphoreHandle_t Sem_ISR_Sleep;   		//when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
+	extern SemaphoreHandle_t Sem_ISR_ProcessData; //Send the read data from Microphone sensor to Process Data Task.
 	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
 
 	/*Binary Semaphore Creations*/
 	Sem_ISR_3D = xSemaphoreCreateBinary();
 	Sem_ISR_ChangePattern = xSemaphoreCreateBinary();
 	Sem_ISR_Sleep = xSemaphoreCreateBinary();
+	Sem_ISR_ProcessData = xSemaphoreCreateBinary();
 	Sem_DataMining_Sleep = xSemaphoreCreateBinary();
 }
 
@@ -238,7 +242,6 @@ void CLecs::initQueue()
 {
 	extern xQueueHandle Queue_ISR_CapSensor;						//Send the read data from capacitive sensors to Cap Sensor Task.
 	extern xQueueHandle Queue_ISR_LDR;      					 	//Send the read data from LDR sensor to LDR Task.
-	extern xQueueHandle Queue_DMA_ProcessData;   			 	//Send the read data from Microphone sensor to Process Data Task.
 	extern xQueueHandle Queue_SensorFusion_DataMining;	//Send the read data from capacitive sensors, LDR sensor and microphone sensor in one only structure of data that was fused.
 	extern xQueueHandle Queue_DataMining_Make;					//Send the pattern that we obtained with analysis the data to Make Graph Task.
 	
@@ -253,9 +256,24 @@ void CLecs::initQueue()
 	/*Queue creation with respective data types*/
 	Queue_ISR_CapSensor = xQueueCreate(4	, 4*sizeof( char ) );
 	Queue_ISR_LDR = xQueueCreate(4	,sizeof( uint16_t ) );
-	//Queue_DMA_ProcessData = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
 	//Queue_SensorFusion_DataMining = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
 	//Queue_DataMining_Make = xQueueCreate(4	,sizeof(  ) );	  ainda não sei o tamanho de cada elemento da message
+}
+
+/*******************************************************************************
+* Function Name  : initMutexs
+* Description    : Initialize all mutexs
+* Input          : None (void)
+* Output         : None (void)
+* Return			   : None
+*******************************************************************************/
+void CLecs::initMutexs()
+{
+	extern SemaphoreHandle_t mutex3DPattern;
+	extern SemaphoreHandle_t mutexSensors; 
+		
+	mutex3DPattern =  xSemaphoreCreateMutex();
+	mutexSensors = xSemaphoreCreateMutex();
 }
 
 /*******************************************************************************
@@ -269,17 +287,13 @@ void vLDRTask( void *pvParameters )
 {
 	char brightness;
 	extern xQueueHandle Queue_ISR_LDR;
+	extern SemaphoreHandle_t mutexSensors; 
 	uint16_t valueLdr;
-	SemaphoreHandle_t mutexSensors;
-	mutexSensors = xSemaphoreCreateMutex();
-	CLeds leds;
-	
+
 	for( ;; )
-	{
-		
+	{		
 		if(uxQueueMessagesWaiting(Queue_ISR_LDR))
 		{ 
-		//	leds.toggleBlue();
 			xQueueReceive( Queue_ISR_LDR, &valueLdr, 0 );
 			/*
 				The brightness scale is split in 8.
@@ -305,46 +319,45 @@ void vLDRTask( void *pvParameters )
           Sensors->setDataLdr(brightness);  
 					/*Unlock Mutex*/
 					xSemaphoreGive( mutexSensors );
-        }
+        }				
 		}
 	}
 }
 
 /*******************************************************************************
-* Function Name  : vUpdateMatrixTask
-* Description    : call function of the task Update Matrix Task
+* Function Name  : vProcessDataTask
+* Description    : call function of the task Process Data Task
 * Input          : None 
 * Output         : None 
 * Return			   : None
 *******************************************************************************/
-void vUpdateMatrixTask()
+void vProcessDataTask(void *pvParameters )
 {
-	extern SemaphoreHandle_t Sem_ISR_3D, Sem_ISR_ChangePattern;
-	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
-	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
-	
-	if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
-        {
-					matrix3D = buffer->popFrame();
-        }
-
-	if( xSemaphoreTake( Sem_ISR_3D, 0 ) == pdTRUE ) // change layer (1ms)
-        {
-					matrix3D->write3DMatrix();
-        }
+	CMicrophone *micro = CMicrophone::getInstance();
+	micro->initMicrophone();
+	for( ;; )
+	{	
+	micro->readMicrophone(); 
+	vTaskDelay(1); //context switch
+	}
 }
 
-#include "C3DLedMatrix.h"
-
-
- //só para fins de testes
-void vTaskTest(void *pvParameters)
+/*******************************************************************************
+* Function Name  : vMakeGraphTask
+* Description    : call function of the task Make Graph Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vMakeGraphTask(void *pvParameters)
 {
-	CLeds leds; ;
-	CSensors* Sensors = CSensors::getInstance();
-
+	extern xQueueHandle Queue_DataMining_Make; // falta fazer o xQueueCreate (CLecs::InitQueue acima)
+	extern SemaphoreHandle_t mutex3DPattern;  //mutex 3D Pattern 
+	extern  uint16_t spectrum[64];
+	extern uint16_t maxValue;
 	
 	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+	C3DLedMatrix* matrix3D = new C3DLedMatrix;
 	
 	char*** _3Dmatrix;
 	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
@@ -357,86 +370,205 @@ void vTaskTest(void *pvParameters)
 			
 		}
 	}
-	
-int i = 0;		
-	C3DLedMatrix* matrix3D = new C3DLedMatrix;
-	for( ;; )
-	{	
-		i++; 
-		vUpdateMatrixTask();
-	//	buffer->pushFrame(matrix3D);
-	leds.toggleBlue();
-//			vTaskDelay(50 / portTICK_RATE_MS);
-		if(i == 50000) //1
-		{
-			_3Dmatrix[4][0][0] = 1; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 1; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 1; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 1;
-			
 		
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 100000)//2
-		{
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 1; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 1; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 1; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 1; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 150000)//3
-		{
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 1;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 1; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 0; _3Dmatrix[2][0][1] = 0; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 0; _3Dmatrix[2][0][4] = 0;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 1; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 1; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}else
-		if(i == 200000)//4
-		{
-			i = 0;
-			_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}
-					_3Dmatrix[4][0][0] = 0; _3Dmatrix[4][0][1] = 0; _3Dmatrix[4][0][2] = 0; _3Dmatrix[4][0][3] = 0; _3Dmatrix[4][0][4] = 0;
-			_3Dmatrix[3][0][0] = 0; _3Dmatrix[3][0][1] = 0; _3Dmatrix[3][0][2] = 0; _3Dmatrix[3][0][3] = 0; _3Dmatrix[3][0][4] = 0;
-			_3Dmatrix[2][0][0] = 1; _3Dmatrix[2][0][1] = 1; _3Dmatrix[2][0][2] = 1; _3Dmatrix[2][0][3] = 1; _3Dmatrix[2][0][4] = 1;
-			_3Dmatrix[1][0][0] = 0; _3Dmatrix[1][0][1] = 0; _3Dmatrix[1][0][2] = 0; _3Dmatrix[1][0][3] = 0; _3Dmatrix[1][0][4] = 0;
-			_3Dmatrix[0][0][0] = 0; _3Dmatrix[0][0][1] = 0; _3Dmatrix[0][0][2] = 0; _3Dmatrix[0][0][3] = 0; _3Dmatrix[0][0][4] = 0;
-			
-			matrix3D->set3DMatrix(_3Dmatrix);
-			buffer->pushFrame(matrix3D);
-		}
-}
-
- //só para fins de testes
-void vLEDTask2( void *pvParameters )
-{
+	char bit = 0;
 	
-	CLeds leds;
-	leds.setGreen();
-	leds.setBlue();
-	for( ;; )
+	/*effect will coming of the task data mining (microphone) */
+	uint16_t effect = 2, x, i;
+				
+	for(;;)
 	{
-		leds.setGreen();
+//		if(uxQueueMessagesWaiting(Queue_DataMining_Make))
+//		{ 
+//			xQueueReceive( Queue_DataMining_Make, maxvalue e vector num vector , 0 );
+//		}
+//		
+	/*********************ALGORITHM's for make patterns*************************************************/
+		
+		/*Lock Mutex*/
+		if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+			{
+				switch (effect)
+				{
+					case 1: //ascendant effect
+					
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[0][index / 10][k] = bit : _3Dmatrix[0][index / 10][k] = 0;
+							(i >= 1) ? _3Dmatrix[1][index / 10][k] = bit : _3Dmatrix[1][index / 10][k] = 0;
+							(i >= 2) ? _3Dmatrix[2][index / 10][k] = bit : _3Dmatrix[2][index / 10][k] = 0;
+							(i >= 3) ? _3Dmatrix[3][index / 10][k] = bit : _3Dmatrix[3][index / 10][k] = 0;
+							(i >= 4) ? _3Dmatrix[4][index / 10][k] = bit : _3Dmatrix[4][index / 10][k] = 0;
+							if(++k > 4) k = 0;
+						} 
+						break;
+					case 2: // X effect
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							(i >= 0) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 0) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 1) ? _3Dmatrix[k][index / 10][k]			= bit : _3Dmatrix[k][index / 10][k]		 	= 0;
+							(i >= 1) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 2) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 2) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 3) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k] 			= 0;
+							(i >= 3) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							(i >= 4) ? _3Dmatrix[k][index / 10][k] 		= bit : _3Dmatrix[k][index / 10][k]				= 0;
+							(i >= 4) ? _3Dmatrix[k][index / 10][4 - k] = bit : _3Dmatrix[k][index / 10][4 - k] 	= 0;
+							if(++k > 4) k = 0;
+						}
+						break;
+					case 3: // ladder effect
+						x = maxValue/ 5;
+				
+						for (int index = 0, k = 0; index < 50; index++)
+						{	index++;
+							i = spectrum[index] / x;
+							(spectrum[index] > 0) ? bit = 1 : bit = 0;
+							((i >= 0)&&((index / 10)>=0)) ? _3Dmatrix[0][4 - index / 10][k] = bit : _3Dmatrix[0][4 - index / 10][k] = 0;
+							((i >= 1)&&((index / 10)>=1)) ? _3Dmatrix[1][4 - index / 10][k] = bit : _3Dmatrix[1][4 - index / 10][k] = 0;
+							((i >= 2)&&((index / 10)>=2)) ? _3Dmatrix[2][4 - index / 10][k] = bit : _3Dmatrix[2][4 - index / 10][k] = 0;
+							((i >= 3)&&((index / 10)>=3)) ? _3Dmatrix[3][4 - index / 10][k] = bit : _3Dmatrix[3][4 - index / 10][k] = 0;
+							((i >= 4)&&((index / 10)>=4)) ? _3Dmatrix[4][4 - index / 10][k] = bit : _3Dmatrix[4][4 - index / 10][k] = 0;
+							if(++k > 4) k = 0;
+						} 
+						break;
+					default:
+						break;
+					}
+					/*Unlock Mutex*/
+					xSemaphoreGive( mutex3DPattern );
+				}
+	/************************************************************************************************************************************/
+		
+		/*Lock Mutex*/
+	if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+		{
+			
+			matrix3D->set3DMatrix(_3Dmatrix);
+			buffer->pushFrame(matrix3D);
+			
+			/*Unlock Mutex*/
+			xSemaphoreGive( mutex3DPattern );
+		}
+			vTaskDelay(1); //context switch
 	}
 }
+
+
+/*******************************************************************************
+* Function Name  : vUpdateMatrixTask
+* Description    : call function of the task Update Matrix Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vUpdateMatrixTask(void *pvParameters)
+{
+	extern SemaphoreHandle_t Sem_ISR_3D, Sem_ISR_ChangePattern;
+	extern SemaphoreHandle_t mutex3DPattern;
+	C3DLedMatrixBuffer* buffer = C3DLedMatrixBuffer::getInstance();
+	static C3DLedMatrix* matrix3D = new C3DLedMatrix;
+		
+	for(;;)
+	{
+		if( xSemaphoreTake( Sem_ISR_ChangePattern, 0 ) == pdTRUE ) // change frame (30 fps)
+					{
+						/*Lock Mutex*/
+						if( xSemaphoreTake( mutex3DPattern, ( TickType_t ) 0 ) == pdTRUE )
+						{
+							matrix3D = buffer->popFrame();
+
+							/*Unlock Mutex*/
+							xSemaphoreGive( mutex3DPattern );}
+					}
+
+		if( xSemaphoreTake( Sem_ISR_3D, 0 ) == pdTRUE ) // change layer (1ms)
+					{
+						matrix3D->write3DMatrix();
+					}
+		vTaskDelay(1); //context switch
+	}
+}
+
+
+
+
+
+
+
+/*******************************************************************************
+* Function Name  : vDataMiningTask
+* Description    : call function of the task Data Mining
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vDataMiningTask(void *pvParameters )
+{
+	
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+/*******************************************************************************
+* Function Name  : vSensorFusionTask
+* Description    : call function of the task Sensor Fusion
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vSensorFusionTask(void *pvParameters )
+{
+	
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+/*******************************************************************************
+* Function Name  : vCapSensorTask
+* Description    : call function of the task Capacitive Sensors
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vCapSensorTask(void *pvParameters )
+{
+
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+/*******************************************************************************
+* Function Name  : vSleepTask
+* Description    : call function of the task Sleep Task
+* Input          : None 
+* Output         : None 
+* Return			   : None
+*******************************************************************************/
+void vSleepTask(void *pvParameters )
+{
+	for( ;; )
+	{	
+
+	vTaskDelay(1); //context switch
+	}
+}
+
 /*******************************************************************************
 * Function Name  : initTasks()
 * Description    : Create Tasks and Assign Tasks Priorities
@@ -447,23 +579,30 @@ void vLEDTask2( void *pvParameters )
 *******************************************************************************/
 int CLecs::initTasks()
 {
-	portBASE_TYPE task1_pass, task_test;
+	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask, LDRTask, sleepTask, capSensorTask, sensorFusionTask, dataMiningTask ;
 	
 	/* Create Task */
-	task1_pass = xTaskCreate(vTaskTest, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-//  task_test = xTaskCreate(vTaskTest, "Task_test", configMINIMAL_STACK_SIZE, NULL, 1, NULL); //só para fins de testes
-//	xTaskCreate(vLEDTask2, "Task_Led2", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-	
-	if ((task1_pass == pdPASS))
-	{
-		/* Everything went well*/
-		return 0;
-	}
-	else
-	{
-		/* ERROR! Creating the Tasks */
-		return -2;
-	}
+	/*Low priority numbers denote low priority tasks. The idle task has priority zero (tskIDLE_PRIORITY).*/
+	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL); // priority higher than 4 don't work
+	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
+	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
+//	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+//	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+//	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+//	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+
+//	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS)&&(LDRTask == pdPASS)&&(sleepTask == pdPASS)&&(capSensorTask == pdPASS)&&(sensorFusionTask == pdPASS)&&(dataMiningTask == pdPASS))
+//	{
+//		/* Everything went well*/
+//		return 0;
+//	}
+//	else
+//	{
+//		/* ERROR! Creating the Tasks */
+//		return -2;
+//	}
+return 0;
 }
 
 /*******************************************************************************
@@ -487,6 +626,7 @@ int CLecs::run()
 		return -2;
 	}
 }
+
 
 CLecs* CLecs::instance = 0;
 
@@ -515,6 +655,10 @@ void *operator new(size_t size)
    return p;
 }
 
+/*
+	Overload of opeartor new and delete because they use malloc and free
+that aren not thread safe
+*/
 void operator delete(void *p)
 {
    if(uxTaskGetNumberOfTasks())

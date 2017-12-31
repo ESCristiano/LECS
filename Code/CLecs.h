@@ -16,6 +16,7 @@ public:
 	void initLecsSensors();
 	void initSemaphores();
 	void initQueue();
+	void initMutexs();
 	int run();
 	static CLecs* getInstance();
 private:

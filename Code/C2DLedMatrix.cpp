@@ -94,26 +94,26 @@ void C2DLedMatrix::write2DMatrix()
 	
 	*/
 
-	GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) _2Dmatrix[0][0]);
-	GPIO_WriteBit(GPIOA, GPIO_Pin_2, 	(BitAction) _2Dmatrix[0][1]);
-	GPIO_WriteBit(GPIOC, GPIO_Pin_5, 	(BitAction) _2Dmatrix[0][2]);
-	GPIO_WriteBit(GPIOC, GPIO_Pin_4, 	(BitAction) _2Dmatrix[0][3]);
-	GPIO_WriteBit(GPIOB, GPIO_Pin_1, 	(BitAction) _2Dmatrix[0][4]);
+	GPIO_WriteBit(GPIOA, GPIO_Pin_2, 	(BitAction) _2Dmatrix[0][0]);
+	GPIO_WriteBit(GPIOA, GPIO_Pin_3, 	(BitAction) _2Dmatrix[0][1]);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_4, 	(BitAction) _2Dmatrix[0][2]);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_5, 	(BitAction) _2Dmatrix[0][3]);
+	GPIO_WriteBit(GPIOB, GPIO_Pin_0, 	(BitAction) _2Dmatrix[0][4]);
 	
-	GPIO_WriteBit(GPIOB, GPIO_Pin_0, 	(BitAction) _2Dmatrix[1][0]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_7,	(BitAction) _2Dmatrix[1][1]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_8, 	(BitAction) _2Dmatrix[1][2]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_9, 	(BitAction) _2Dmatrix[1][3]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_10, (BitAction) _2Dmatrix[1][4]);
+	GPIO_WriteBit(GPIOB, GPIO_Pin_1, 	(BitAction) _2Dmatrix[1][0]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_8,	(BitAction) _2Dmatrix[1][1]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_7, 	(BitAction) _2Dmatrix[1][2]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_10, (BitAction) _2Dmatrix[1][3]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_9, 	(BitAction) _2Dmatrix[1][4]);
 	
-	GPIO_WriteBit(GPIOE, GPIO_Pin_11, (BitAction) _2Dmatrix[2][0]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_12,	(BitAction) _2Dmatrix[2][1]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_13, (BitAction) _2Dmatrix[2][2]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_14, (BitAction) _2Dmatrix[2][3]);
-	GPIO_WriteBit(GPIOE, GPIO_Pin_15, (BitAction) _2Dmatrix[2][4]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_12, (BitAction) _2Dmatrix[2][0]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_11,	(BitAction) _2Dmatrix[2][1]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_14, (BitAction) _2Dmatrix[2][2]);
+	GPIO_WriteBit(GPIOE, GPIO_Pin_13, (BitAction) _2Dmatrix[2][3]);
+	GPIO_WriteBit(GPIOA, GPIO_Pin_4, 	(BitAction) _2Dmatrix[2][4]);
 	
-	GPIO_WriteBit(GPIOB, GPIO_Pin_11, (BitAction) _2Dmatrix[3][0]);
-	GPIO_WriteBit(GPIOB, GPIO_Pin_12,	(BitAction) _2Dmatrix[3][1]);
+	GPIO_WriteBit(GPIOB, GPIO_Pin_12, (BitAction) _2Dmatrix[3][0]);
+	GPIO_WriteBit(GPIOB, GPIO_Pin_11,	(BitAction) _2Dmatrix[3][1]);
 	GPIO_WriteBit(GPIOB, GPIO_Pin_13, (BitAction) _2Dmatrix[3][2]);
 	GPIO_WriteBit(GPIOB, GPIO_Pin_14, (BitAction) _2Dmatrix[3][3]);
 	GPIO_WriteBit(GPIOB, GPIO_Pin_15, (BitAction) _2Dmatrix[3][4]);
