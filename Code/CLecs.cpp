@@ -298,14 +298,14 @@ void vLDRTask( void *pvParameters )
 			/*
 				The brightness scale is split in 8.
 															ADC value (LDR) 
-				brightness level 0 	-> 	[0 to 32]
+				brightness level 0 	-> 	[0 to 32] Less dark
 				brightness level 1 	-> 	[33 to 64] 
 				brightness level 2 	-> 	[65 to 96]
 				brightness level 3 	-> 	[97 to 128]
 				brightness level 4 	-> 	[129 to 160]
 				brightness level 5 	-> 	[161 to 192]
 				brightness level 6 	-> 	[193 to 224]
-				brightness level 7 	-> 	[225 to 255]
+				brightness level 7 	-> 	[225 to 255] More dark
 			
 				The mask (& 0x7) certifie that the brightness range is between 0 and 7
 			*/
@@ -553,6 +553,38 @@ void vCapSensorTask(void *pvParameters )
 	vTaskDelay(1); //context switch
 	}
 }
+
+/*******************************************************************************
+* Function Name  : TIM6_DAC_IRQHandler
+* Description    : ISR timer 6
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+// extern "C" -> for C++, ensure the interrupt handler is linked as a C function
+extern "C" void TIM5_IRQHandler(void) 
+{
+	extern SemaphoreHandle_t Sem_ISR_Sleep;
+	
+	static BaseType_t xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+	
+	static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
+	
+	if (TIM_GetITStatus (TIM5, TIM_IT_Update) != RESET) 
+	{
+		
+		if(Sensors->getDataLdr() >= 6) // DARK ?? 
+		{
+		/* Unblock the task by releasing the semaphore. */
+		xSemaphoreGiveFromISR( Sem_ISR_Sleep, &xHigherPriorityTaskWoken );
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
+		
+		TIM_ClearITPendingBit (TIM5, TIM_IT_Update); 
+  }	
+}
+
 /*******************************************************************************
 * Function Name  : vSleepTask
 * Description    : call function of the task Sleep Task
@@ -562,10 +594,69 @@ void vCapSensorTask(void *pvParameters )
 *******************************************************************************/
 void vSleepTask(void *pvParameters )
 {
+	extern TaskHandle_t tMakeGraphTask;
+	extern TaskHandle_t tProcessDataTask;
+	extern TaskHandle_t tUpdateMatrixTask;
+	extern TaskHandle_t tDataMiningTask;
+	extern TaskHandle_t tSensorFusionTask;
+	extern TaskHandle_t tCapSensorTask;
+	extern SemaphoreHandle_t Sem_ISR_Sleep;   		//when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
+	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
+
+	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	
+	char*** _3Dmatrix;
+	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+	for (int i = 0; i < __LAYERS; ++i)
+	{
+		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+		for (int j = 0; j < __ROWS; ++j)
+		{
+			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+			
+		}
+	}
+	
+	CTimer timer5; 
+	
+	/*Interrupt in 1s in 1s*/
+	timer5.timerInit(42000, 2000, RCC_APB1Periph_TIM5, TIM5);
+	timer5.timerInterruptInit(TIM5_IRQn);
+	timer5.timerInterruptEnable(TIM5);
+	
 	for( ;; )
 	{	
+		if(uxSemaphoreGetCount( Sem_DataMining_Sleep ) != 0)
+		{
+			matrix3D->write3DMatrix(); // turn off 3d matrix of leds 
+						
+			vTaskSuspend( tMakeGraphTask );
+			vTaskSuspend( tProcessDataTask );
+			vTaskSuspend( tUpdateMatrixTask );
+//			vTaskSuspend( tDataMiningTask );
+//			vTaskSuspend( tSensorFusionTask );
+//			vTaskSuspend( tCapSensorTask );
+			
+			timer5.timerStart(TIM5); // timer to verify if is dark or no
+		
+			xSemaphoreTake( Sem_DataMining_Sleep, 0 );
+		}
+		
+		if(uxSemaphoreGetCount( Sem_ISR_Sleep ) != 0)
+		{
+			timer5.timerStop(TIM5);
+			
+			vTaskResume(tMakeGraphTask);
+			vTaskResume(tProcessDataTask);
+			vTaskResume(tUpdateMatrixTask);
+//			vTaskResume(tDataMiningTask);
+//			vTaskResume(tSensorFusionTask);
+//			vTaskResume(tCapSensorTask);
+						
+			xSemaphoreTake( Sem_ISR_Sleep, 0 );
+		}
 
-	vTaskDelay(1); //context switch
+		vTaskDelay(1); //context switch
 	}
 }
 
@@ -579,18 +670,26 @@ void vSleepTask(void *pvParameters )
 *******************************************************************************/
 int CLecs::initTasks()
 {
+	extern TaskHandle_t tMakeGraphTask;
+	extern TaskHandle_t tProcessDataTask;
+	extern TaskHandle_t tUpdateMatrixTask;
+	extern TaskHandle_t tDataMiningTask;
+	extern TaskHandle_t tSensorFusionTask;
+	extern TaskHandle_t tCapSensorTask;
+	extern TaskHandle_t tLDRTask;
+	extern TaskHandle_t tSleepTask;
 	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask, LDRTask, sleepTask, capSensorTask, sensorFusionTask, dataMiningTask ;
 	
 	/* Create Task */
 	/*Low priority numbers denote low priority tasks. The idle task has priority zero (tskIDLE_PRIORITY).*/
-	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL); // priority higher than 4 don't work
-	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
-	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-//	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-//	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-//	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
-//	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, &tMakeGraphTask); // priority higher than 4 don't work
+	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, &tProcessDataTask);
+	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, &tUpdateMatrixTask);
+//	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, &tDataMiningTask);
+//	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, &tSensorFusionTask);
+//	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, &tCapSensorTask);
+	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, &tLDRTask);
+	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, &tSleepTask);
 
 //	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS)&&(LDRTask == pdPASS)&&(sleepTask == pdPASS)&&(capSensorTask == pdPASS)&&(sensorFusionTask == pdPASS)&&(dataMiningTask == pdPASS))
 //	{
