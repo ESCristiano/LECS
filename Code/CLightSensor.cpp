@@ -20,7 +20,7 @@ CLightSensor::~CLightSensor()
 extern "C" void TIM7_IRQHandler(void) 
 {
 	uint16_t value;
-	extern xQueueHandle Queue_ISR_LDR; 
+	extern xQueueHandle Queue_ISR_LDR; extern SemaphoreHandle_t Sem_DataMining_Sleep;
 	BaseType_t xHigherPriorityTaskWoken;
 	/* We have not woken a task at the start of the ISR. */
 	xHigherPriorityTaskWoken = pdFALSE;
@@ -69,7 +69,7 @@ uint16_t CLightSensor::readLDR()
 {
 	ADC_SoftwareStartConv(ADC1);//Start the conversion
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));//Processing the conversion
-	return ADC_GetConversionValue(ADC1); //Return the converted data
+	return (ADC_GetConversionValue(ADC1) & 0x00ff); //Return the converted data
 }
 
 CLightSensor* CLightSensor::instance = 0;

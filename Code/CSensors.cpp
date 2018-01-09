@@ -30,7 +30,7 @@ void CSensors::setDataLdr(char brightness)
 	data.ldrBrightness = brightness;	t = 2;
 }
 
-void CSensors::setDataCapSensors(int cap)
+void CSensors::setDataCapSensors(uint8_t cap)
 {
 	data.capsensors = cap;
 }
@@ -46,7 +46,7 @@ char CSensors::getDataLdr()
 	return data.ldrBrightness;
 }
 
-int CSensors::getDataCapSensors()
+uint8_t CSensors::getDataCapSensors()
 {
 	return data.capsensors;
 }
@@ -63,8 +63,9 @@ void CSensors::initSensors()
 	CLightSensor* ldr = CLightSensor::getInstance();
 
 	cap->initCapacitiveSensor();
-	micro->initMicrophone();
 	ldr->initLightSensor();
+	micro->initMicrophone();
+
 	
 }
 
