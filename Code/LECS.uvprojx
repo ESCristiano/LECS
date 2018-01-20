@@ -133,12 +133,12 @@
             <UseExternalTool>0</UseExternalTool>
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
-            <Capability>0</Capability>
-            <DriverSelection>-1</DriverSelection>
+            <Capability>1</Capability>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -385,15 +385,140 @@
               <FileType>8</FileType>
               <FilePath>.\main.cpp</FilePath>
             </File>
+            <File>
+              <FileName>CLecs.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLecs.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CSensors.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CSensors.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CCapSensors.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CCapSensors.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CLightSensor.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLightSensor.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CMicrophone.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CMicrophone.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CTimer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CTimer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C2DLedMatrix.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C2DLedMatrix.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrix.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C3DLedMatrix.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrixBuffer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\C3DLedMatrixBuffer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CLayer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CLayer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>CQueue.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\CQueue.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>libPDMFilter_Keil.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>.\libPDMFilter_Keil.lib</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Headers</GroupName>
           <Files>
             <File>
+              <FileName>CBoardLeds.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CBoardLeds.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLecs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLecs.h</FilePath>
+            </File>
+            <File>
+              <FileName>CSensors.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CSensors.h</FilePath>
+            </File>
+            <File>
+              <FileName>CCapSensors.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CCapSensors.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLightSensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLightSensor.h</FilePath>
+            </File>
+            <File>
+              <FileName>CMicrophone.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CMicrophone.h</FilePath>
+            </File>
+            <File>
+              <FileName>CTimer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CTimer.h</FilePath>
+            </File>
+            <File>
+              <FileName>C2DLedMatrix.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C2DLedMatrix.h</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrix.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C3DLedMatrix.h</FilePath>
+            </File>
+            <File>
+              <FileName>C3DLedMatrixBuffer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\C3DLedMatrixBuffer.h</FilePath>
+            </File>
+            <File>
+              <FileName>CLayer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CLayer.h</FilePath>
+            </File>
+            <File>
               <FileName>main.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\main.h</FilePath>
+            </File>
+            <File>
+              <FileName>freertos.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\freertos.h</FilePath>
+            </File>
+            <File>
+              <FileName>CQueue.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\CQueue.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -440,7 +565,7 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cbundle="FreeRTOS" Cclass="RTOS" Cgroup="Heap" Cvariant="Heap_2" Cvendor="ARM" Cversion="9.0.0" condition="FreeRTOS Core">
+      <component Cbundle="FreeRTOS" Cclass="RTOS" Cgroup="Heap" Cvariant="Heap_4" Cvendor="ARM" Cversion="9.0.0" condition="FreeRTOS Core">
         <package license="License/license.txt" name="CMSIS-FreeRTOS" schemaVersion="1.4" url="http://www.keil.com/pack/" vendor="ARM" version="9.1.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
@@ -476,6 +601,12 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
+      <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="DAC" Cvendor="Keil" Cversion="1.3.0" condition="STM32F4 STDPERIPH RCC">
+        <package name="STM32F4xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack" vendor="Keil" version="1.0.8"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
       <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="DMA" Cvendor="Keil" Cversion="1.3.0" condition="STM32F4 STDPERIPH RCC">
         <package name="STM32F4xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack" vendor="Keil" version="1.0.8"/>
         <targetInfos>
@@ -495,6 +626,12 @@
         </targetInfos>
       </component>
       <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="GPIO" Cvendor="Keil" Cversion="1.3.0" condition="STM32F4 STDPERIPH RCC">
+        <package name="STM32F4xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack" vendor="Keil" version="1.0.8"/>
+        <targetInfos>
+          <targetInfo name="Target 1"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Device" Cgroup="StdPeriph Drivers" Csub="I2C" Cvendor="Keil" Cversion="1.3.0" condition="STM32F4 STDPERIPH RCC">
         <package name="STM32F4xx_DFP" schemaVersion="1.2" url="http://www.keil.com/pack" vendor="Keil" version="1.0.8"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
