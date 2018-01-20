@@ -41,5 +41,14 @@ SemaphoreHandle_t mutex3DPattern;
 SemaphoreHandle_t mutexSensors;
 
 /*********************************************************************************************************************************************************************/
+ TaskHandle_t tMakeGraphTask;
+ TaskHandle_t tProcessDataTask;
+ TaskHandle_t tUpdateMatrixTask;
+ TaskHandle_t tDataMiningTask;
+ TaskHandle_t tSensorFusionTask;
+ TaskHandle_t tCapSensorTask;
+ TaskHandle_t tLDRTask;
+ TaskHandle_t tSleepTask;
+ /*********************************************************************************************************************************************************************/
 #endif //_MAIN_H
 

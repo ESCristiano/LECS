@@ -1,12 +1,14 @@
 #ifndef _CSENSORS_H
 #define _CSENSORS_H
 
+#include <stm32f4xx.h>
+
 class CSensors {
 private:
 	struct dataSensors {
 		char ldrBrightness;
 		int microphone;
-		int capsensors;
+		uint8_t capsensors;
 	}data;
 	char t;
 	static CSensors* instance;
@@ -14,10 +16,10 @@ private:
 	~CSensors();
 public:
 	void setDataLdr( char);
-	void setDataCapSensors( int);
+	void setDataCapSensors( uint8_t );
 	void setDataMicrophone( int);
 	char getDataLdr();
-	int getDataCapSensors();
+	uint8_t getDataCapSensors();
 	int getDataMicrophone();
 	void initSensors();
 	static CSensors* getInstance();

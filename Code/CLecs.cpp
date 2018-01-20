@@ -254,10 +254,10 @@ void CLecs::initQueue()
 	---------------------------------------------------------------------------------------*/
 	
 	/*Queue creation with respective data types*/
-	Queue_ISR_CapSensor = xQueueCreate(4	, 4*sizeof( char ) );
+	Queue_ISR_CapSensor = xQueueCreate(4	, 1*sizeof( uint8_t ) );
 	Queue_ISR_LDR = xQueueCreate(4	,sizeof( uint16_t ) );
-	//Queue_SensorFusion_DataMining = xQueueCreate(4	,sizeof(  ) );  ainda não sei o tamanho de cada elemento da message
-	//Queue_DataMining_Make = xQueueCreate(4	,sizeof(  ) );	  ainda não sei o tamanho de cada elemento da message
+	Queue_SensorFusion_DataMining = xQueueCreate(4	,sizeof( char) );  
+	Queue_DataMining_Make = xQueueCreate(4	,sizeof(char) );	 
 }
 
 /*******************************************************************************
@@ -289,7 +289,8 @@ void vLDRTask( void *pvParameters )
 	extern xQueueHandle Queue_ISR_LDR;
 	extern SemaphoreHandle_t mutexSensors; 
 	uint16_t valueLdr;
-
+	CLeds led;
+	
 	for( ;; )
 	{		
 		if(uxQueueMessagesWaiting(Queue_ISR_LDR))
@@ -298,19 +299,19 @@ void vLDRTask( void *pvParameters )
 			/*
 				The brightness scale is split in 8.
 															ADC value (LDR) 
-				brightness level 0 	-> 	[0 to 32]
+				brightness level 0 	-> 	[0 to 32] Less dark
 				brightness level 1 	-> 	[33 to 64] 
 				brightness level 2 	-> 	[65 to 96]
 				brightness level 3 	-> 	[97 to 128]
 				brightness level 4 	-> 	[129 to 160]
 				brightness level 5 	-> 	[161 to 192]
 				brightness level 6 	-> 	[193 to 224]
-				brightness level 7 	-> 	[225 to 255]
+				brightness level 7 	-> 	[225 to 255] More dark
 			
 				The mask (& 0x7) certifie that the brightness range is between 0 and 7
 			*/
 			brightness = (valueLdr/33) & 0x7;
-			
+			led.toggleRed();
 			static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
 		
 			/*Lock Mutex*/
@@ -321,6 +322,7 @@ void vLDRTask( void *pvParameters )
 					xSemaphoreGive( mutexSensors );
         }				
 		}
+		vTaskDelay(1); //context switch
 	}
 }
 
@@ -374,15 +376,17 @@ void vMakeGraphTask(void *pvParameters)
 	char bit = 0;
 	
 	/*effect will coming of the task data mining (microphone) */
-	uint16_t effect = 2, x, i;
-				
+	uint16_t effect = 3, x, i;
+	
 	for(;;)
 	{
-//		if(uxQueueMessagesWaiting(Queue_DataMining_Make))
-//		{ 
-//			xQueueReceive( Queue_DataMining_Make, maxvalue e vector num vector , 0 );
-//		}
-//		
+		if(uxQueueMessagesWaiting(Queue_DataMining_Make))
+		{ 
+			xQueueReceive( Queue_DataMining_Make, &effect , 0 );
+			
+		}
+		else
+		{
 	/*********************ALGORITHM's for make patterns*************************************************/
 		
 		/*Lock Mutex*/
@@ -391,7 +395,6 @@ void vMakeGraphTask(void *pvParameters)
 				switch (effect)
 				{
 					case 1: //ascendant effect
-					
 						x = maxValue/ 5;
 				
 						for (int index = 0, k = 0; index < 50; index++)
@@ -459,8 +462,9 @@ void vMakeGraphTask(void *pvParameters)
 			/*Unlock Mutex*/
 			xSemaphoreGive( mutex3DPattern );
 		}
-			vTaskDelay(1); //context switch
 	}
+	vTaskDelay(1); //context switch	
+ }
 }
 
 
@@ -500,11 +504,6 @@ void vUpdateMatrixTask(void *pvParameters)
 }
 
 
-
-
-
-
-
 /*******************************************************************************
 * Function Name  : vDataMiningTask
 * Description    : call function of the task Data Mining
@@ -514,11 +513,74 @@ void vUpdateMatrixTask(void *pvParameters)
 *******************************************************************************/
 void vDataMiningTask(void *pvParameters )
 {
+	extern xQueueHandle Queue_SensorFusion_DataMining, Queue_DataMining_Make ;
+	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
+  const int maxTic = 100;
+	bool updatePattern = false;
+	char effect = 1, obs = 'o';								//guarda valor do observado 'o' = outro; 'd' = direita; 'e' = esquerda;	
+	unsigned short int state = 0;	//guarda valor dos estados: 0 = inicio; 1 = começar gesto esq; 2 = começar gesto dir; 3 = gesto esq; 4 = gesto dir;
+	unsigned short int tic = 0;	
+	static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
 	
 	for( ;; )
-	{	
-
-	vTaskDelay(1); //context switch
+	{		
+		if(uxQueueMessagesWaiting(Queue_SensorFusion_DataMining))
+		{ 
+			xQueueReceive( Queue_SensorFusion_DataMining, &obs, 0 );
+			
+			switch (state)
+			{
+				case 0:
+								if(obs == 'd')
+									{state = 1;}
+								else if(obs == 'e')
+									{state = 2;}
+								tic = 0;
+								break;
+				case 1:								
+								if(tic >= maxTic)
+									{state = 0;}
+								else if(obs == 'e')
+									{state = 3;}
+								tic++;
+								break;
+				case 2:
+								if(tic >= maxTic)
+									{state = 0;}
+								else if(obs == 'd')
+									{state = 4;}
+								tic++;
+								break;
+				case 3:
+								//gesto esquerda
+								(effect < 2 ) ? effect = 3 : effect--;
+								state = 0;
+								updatePattern = true;
+								break;
+				case 4:
+								//gesto direita
+								(effect > 2 ) ? effect = 1 : effect++;
+								state = 0;
+								updatePattern = true;
+								break;
+				default: break;			
+			}
+			
+			if(updatePattern)
+			{
+				updatePattern = false;
+				xQueueSend(Queue_DataMining_Make, &effect ,0);
+			}
+			
+			if(Sensors->getDataLdr() < 2 ) // isn't DARK ?? 
+			{
+			/* Unblock the task by releasing the semaphore. */
+			xSemaphoreGive( Sem_DataMining_Sleep);
+			portYIELD();
+			}
+			
+			vTaskDelay(1); //context switch
+		}
 	}
 }
 /*******************************************************************************
@@ -530,11 +592,43 @@ void vDataMiningTask(void *pvParameters )
 *******************************************************************************/
 void vSensorFusionTask(void *pvParameters )
 {
+	uint8_t data = 0, a, b, c, d;
+	extern SemaphoreHandle_t mutexSensors; 
+	extern xQueueHandle Queue_SensorFusion_DataMining;//Send the read data from capacitive sensors, LDR sensor and microphone sensor in one only structure of data that was fused.
+	char obs;
+	CLeds led;
+	
+	static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
 	
 	for( ;; )
 	{	
+		/*Lock Mutex*/
+		if( xSemaphoreTake( mutexSensors, ( TickType_t ) 10 ) == pdTRUE )
+			{
+				data = Sensors->getDataCapSensors();
+				/*Unlock Mutex*/
+				xSemaphoreGive( mutexSensors );
+			}
+		a = (data & 0x01) >> 0; 
+		b = (data & 0x02) >> 1; 
+		c = (data & 0x04) >> 2; 
+		d = (data & 0x08) >> 3;
+				
+		if((b||d) && !(a||c) )
+			{
+				obs = 'e';
+			}
+			else if((a||c) && !(b||d) )
+			{
 
-	vTaskDelay(1); //context switch
+				obs = 'd';
+			}
+			else
+			{	
+				obs = 'o';
+			}
+		xQueueSend(Queue_SensorFusion_DataMining, &obs ,0);
+		vTaskDelay(1); //context switch
 	}
 }
 /*******************************************************************************
@@ -546,13 +640,61 @@ void vSensorFusionTask(void *pvParameters )
 *******************************************************************************/
 void vCapSensorTask(void *pvParameters )
 {
+	extern xQueueHandle Queue_ISR_CapSensor;
+	extern SemaphoreHandle_t mutexSensors; 
+	uint8_t data;
 
 	for( ;; )
-	{	
-
-	vTaskDelay(1); //context switch
+	{		
+		if(uxQueueMessagesWaiting(Queue_ISR_CapSensor))
+		{ 
+			xQueueReceive( Queue_ISR_CapSensor, &data, 0 );
+			
+			static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
+		
+			/*Lock Mutex*/
+			if( xSemaphoreTake( mutexSensors, ( TickType_t ) 10 ) == pdTRUE )
+        {
+          Sensors->setDataCapSensors(data);
+					/*Unlock Mutex*/
+					xSemaphoreGive( mutexSensors );
+        }				
+		}
+		vTaskDelay(1); //context switch
 	}
 }
+
+/*******************************************************************************
+* Function Name  : TIM6_DAC_IRQHandler
+* Description    : ISR timer 6
+* Input          : None (void)
+* Output         : None (void)
+* Return				 : None
+*******************************************************************************/
+// extern "C" -> for C++, ensure the interrupt handler is linked as a C function
+extern "C" void TIM5_IRQHandler(void) 
+{
+	extern SemaphoreHandle_t Sem_ISR_Sleep;
+	
+	static BaseType_t xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+	
+	static CSensors* Sensors = CSensors::getInstance(); //static because the pointer just can be initialized once
+	
+	if (TIM_GetITStatus (TIM5, TIM_IT_Update) != RESET) 
+	{
+		
+		if(Sensors->getDataLdr() >= 2) // DARK ?? 
+		{
+		/* Unblock the task by releasing the semaphore. */
+		xSemaphoreGiveFromISR( Sem_ISR_Sleep, &xHigherPriorityTaskWoken );
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
+		
+		TIM_ClearITPendingBit (TIM5, TIM_IT_Update); 
+  }	
+}
+
 /*******************************************************************************
 * Function Name  : vSleepTask
 * Description    : call function of the task Sleep Task
@@ -562,10 +704,69 @@ void vCapSensorTask(void *pvParameters )
 *******************************************************************************/
 void vSleepTask(void *pvParameters )
 {
+	extern TaskHandle_t tMakeGraphTask;
+	extern TaskHandle_t tProcessDataTask;
+	extern TaskHandle_t tUpdateMatrixTask;
+	extern TaskHandle_t tDataMiningTask;
+	extern TaskHandle_t tSensorFusionTask;
+	extern TaskHandle_t tCapSensorTask;
+	extern SemaphoreHandle_t Sem_ISR_Sleep;   		//when a wake up condition is verify this semaphore is released and the programme wake up and start running normally.
+	extern SemaphoreHandle_t Sem_DataMining_Sleep;// When a sleep condition is verify this semaphore is released and the programme go to a sleep mode.
+
+	C3DLedMatrix* matrix3D = new C3DLedMatrix;
+	
+	char*** _3Dmatrix;
+	_3Dmatrix = new char**[__LAYERS];  //allocate a pointer to 2D matrixs
+	for (int i = 0; i < __LAYERS; ++i)
+	{
+		_3Dmatrix[i] = new char*[__ROWS](); //allocate a pointer to columns
+		for (int j = 0; j < __ROWS; ++j)
+		{
+			_3Dmatrix[i][j] = new char[__COLUMNS](); // allocate and set all elements 0
+			
+		}
+	}
+	
+	CTimer timer5; 
+	
+	/*Interrupt in 1s in 1s*/
+	timer5.timerInit(42000, 1000, RCC_APB1Periph_TIM5, TIM5);
+	timer5.timerInterruptInit(TIM5_IRQn);
+	timer5.timerInterruptEnable(TIM5);
+	
 	for( ;; )
 	{	
+		if(uxSemaphoreGetCount( Sem_DataMining_Sleep ) != 0) // Sleep Mode
+		{
+			matrix3D->write3DMatrix(); // turn off 3d matrix of leds 
+						
+			vTaskSuspend( tMakeGraphTask );
+			vTaskSuspend( tProcessDataTask );
+			vTaskSuspend( tUpdateMatrixTask );
+			vTaskSuspend( tDataMiningTask );
+			vTaskSuspend( tSensorFusionTask );
+			vTaskSuspend( tCapSensorTask );
+			
+			timer5.timerStart(TIM5); // timer to verify if is dark or no
+		
+			xSemaphoreTake( Sem_DataMining_Sleep, 0 );
+		}
+		
+		if(uxSemaphoreGetCount( Sem_ISR_Sleep ) != 0) // Wake Up Mode
+		{
+			timer5.timerStop(TIM5);
+			
+			vTaskResume(tMakeGraphTask);
+			vTaskResume(tProcessDataTask);
+			vTaskResume(tUpdateMatrixTask);
+			vTaskResume(tDataMiningTask);
+			vTaskResume(tSensorFusionTask);
+			vTaskResume(tCapSensorTask);
+						
+			xSemaphoreTake( Sem_ISR_Sleep, 0 );
+		}
 
-	vTaskDelay(1); //context switch
+		vTaskDelay(1); //context switch
 	}
 }
 
@@ -579,18 +780,26 @@ void vSleepTask(void *pvParameters )
 *******************************************************************************/
 int CLecs::initTasks()
 {
+	extern TaskHandle_t tMakeGraphTask;
+	extern TaskHandle_t tProcessDataTask;
+	extern TaskHandle_t tUpdateMatrixTask;
+	extern TaskHandle_t tDataMiningTask;
+	extern TaskHandle_t tSensorFusionTask;
+	extern TaskHandle_t tCapSensorTask;
+	extern TaskHandle_t tLDRTask;
+	extern TaskHandle_t tSleepTask;
 	portBASE_TYPE updateMatrixTask, makeGraphTask, processDataTask, LDRTask, sleepTask, capSensorTask, sensorFusionTask, dataMiningTask ;
 	
 	/* Create Task */
 	/*Low priority numbers denote low priority tasks. The idle task has priority zero (tskIDLE_PRIORITY).*/
-	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL); // priority higher than 4 don't work
-	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
-	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-//	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-//	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-//	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
-//	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, NULL);
+	makeGraphTask = xTaskCreate(vMakeGraphTask, "makeGraphTask", configMINIMAL_STACK_SIZE, NULL, 4, &tMakeGraphTask); // priority higher than 4 don't work
+	processDataTask = xTaskCreate(vProcessDataTask, "processDataTask", configMINIMAL_STACK_SIZE, NULL, 4, &tProcessDataTask);
+	updateMatrixTask = xTaskCreate(vUpdateMatrixTask, "updateMatrixTask", configMINIMAL_STACK_SIZE, NULL, 3, &tUpdateMatrixTask);
+	dataMiningTask = xTaskCreate(vDataMiningTask, "dataMiningTask", configMINIMAL_STACK_SIZE, NULL, 2, &tDataMiningTask);
+	sensorFusionTask = xTaskCreate(vSensorFusionTask, "sensorFusionTask", configMINIMAL_STACK_SIZE, NULL, 2, &tSensorFusionTask);
+	capSensorTask = xTaskCreate(vCapSensorTask, "capSensorTask", configMINIMAL_STACK_SIZE, NULL, 1, &tCapSensorTask);
+	LDRTask = xTaskCreate(vLDRTask, "LDRTask", configMINIMAL_STACK_SIZE, NULL, 0, &tLDRTask);
+	sleepTask = xTaskCreate(vSleepTask, "sleepTask", configMINIMAL_STACK_SIZE, NULL, 0, &tSleepTask);
 
 //	if ((updateMatrixTask == pdPASS)&&(makeGraphTask == pdPASS)&&(processDataTask == pdPASS)&&(LDRTask == pdPASS)&&(sleepTask == pdPASS)&&(capSensorTask == pdPASS)&&(sensorFusionTask == pdPASS)&&(dataMiningTask == pdPASS))
 //	{
@@ -652,7 +861,7 @@ void *operator new(size_t size)
    else
       p=malloc(size); //no thread safe, just when we have only one thread
 
-   return p;
+  return p;
 }
 
 /*
