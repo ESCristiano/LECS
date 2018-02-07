@@ -25,6 +25,7 @@ possible to create 3D effects that can be reproduced using an three-dimensional 
 The system must feature two operation modes:
 
   • Auto-adjust mode: this mode adapts the lights effects to the music style.
+  
   • Manual mode: when the user performs some special movements with his hand in a specific area,the light effects change accordingly.
   
 This effects can adjust to the sound based on the bass and treble (low and high) frequencies To capture the sound waves it’s be based on a microphone. Other important characteristic is the systems’ robustness, because this system goes from show
