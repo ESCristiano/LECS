@@ -4,6 +4,7 @@ Light Effects Controling by Sound (Like an equalizer)
 ## Info
 #### Universidade do Minho
 Sistemas Embebidos e Computadores
+
 Embedded Systems and Computers 
 
 MIEEIC
@@ -12,7 +13,7 @@ MIEEIC
 - Cristiano Rodrigues
 - Ivo Marques
 
-Project for Raspberry Pi 3 Model B+ with extra hardwareare
+Project for STM32F407VGT
 
 ## Problem Statement
 
