@@ -23,6 +23,7 @@ Merging music and lights is increasingly more important in entertainment, namely
 A three-dimensional figure will be chosen to take a structure with depth, and this way it is
 possible to create 3D effects that can be reproduced using an three-dimensional LED matrix.
 The system must feature two operation modes:
+
   • Auto-adjust mode: this mode adapts the lights effects to the music style.
   • Manual mode: when the user performs some special movements with his hand in a specific area,the light effects change accordingly.
   
